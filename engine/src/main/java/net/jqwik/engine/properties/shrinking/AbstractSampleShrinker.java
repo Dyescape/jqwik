@@ -7,35 +7,36 @@ import java.util.stream.*;
 import net.jqwik.api.*;
 import net.jqwik.api.Tuple.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.properties.*;
 
 abstract class AbstractSampleShrinker {
 
-	private static ShrinkingDistance calculateDistance(List<Shrinkable<Object>> shrinkables) {
-		return ShrinkingDistance.forCollection(shrinkables);
+	private static ShrinkingDistance calculateDistance(ParameterSet<Shrinkable<Object>> shrinkables) {
+		return ShrinkingDistance.forCollection(shrinkables.all());
 	}
 
-	private final Map<List<Object>, TryExecutionResult> falsificationCache;
+	private final Map<ParameterSet<Object>, TryExecutionResult> falsificationCache;
 
-	public AbstractSampleShrinker(Map<List<Object>, TryExecutionResult> falsificationCache) {
+	public AbstractSampleShrinker(Map<ParameterSet<Object>, TryExecutionResult> falsificationCache) {
 		this.falsificationCache = falsificationCache;
 	}
 
 	public abstract FalsifiedSample shrink(
-		Falsifier<List<Object>> falsifier,
+		Falsifier<ParameterSet<Object>> falsifier,
 		FalsifiedSample sample,
 		Consumer<FalsifiedSample> shrinkSampleConsumer,
 		Consumer<FalsifiedSample> shrinkAttemptConsumer
 	);
 
 	protected FalsifiedSample shrink(
-		Falsifier<List<Object>> falsifier,
+		Falsifier<ParameterSet<Object>> falsifier,
 		FalsifiedSample sample,
 		Consumer<FalsifiedSample> sampleShrunkConsumer,
 		Consumer<FalsifiedSample> shrinkAttemptConsumer,
-		Function<List<Shrinkable<Object>>, Stream<List<Shrinkable<Object>>>> supplyShrinkCandidates
+		Function<ParameterSet<Shrinkable<Object>>, Stream<ParameterSet<Shrinkable<Object>>>> supplyShrinkCandidates
 	) {
-		List<Shrinkable<Object>> currentShrinkBase = sample.shrinkables();
+		ParameterSet<Shrinkable<Object>> currentShrinkBase = sample.shrinkables();
 		Optional<FalsifiedSample> bestResult = Optional.empty();
 		FilteredResults filteredResults = new FilteredResults();
 
@@ -44,12 +45,12 @@ abstract class AbstractSampleShrinker {
 
 			FalsifiedSample currentBest = bestResult.orElse(null);
 
-			Optional<Tuple3<List<Object>, List<Shrinkable<Object>>, TryExecutionResult>> newShrinkingResult =
+			Optional<Tuple3<ParameterSet<Object>, ParameterSet<Shrinkable<Object>>, TryExecutionResult>> newShrinkingResult =
 				supplyShrinkCandidates.apply(currentShrinkBase)
 								 .peek(ignore -> shrinkAttemptConsumer.accept(currentBest))
 								 .filter(shrinkables -> calculateDistance(shrinkables).compareTo(currentDistance) <= 0)
 								 .map(shrinkables -> {
-									 List<Object> params = createValues(shrinkables).collect(Collectors.toList());
+									 ParameterSet<Object> params = shrinkables.map(Shrinkable::value);
 									 TryExecutionResult result = falsify(falsifier, params);
 									 return Tuple.of(params, shrinkables, result);
 								 })
@@ -63,7 +64,7 @@ abstract class AbstractSampleShrinker {
 								 .findAny();
 
 			if (newShrinkingResult.isPresent()) {
-				Tuple3<List<Object>, List<Shrinkable<Object>>, TryExecutionResult> falsifiedTry = newShrinkingResult.get();
+				Tuple3<ParameterSet<Object>, ParameterSet<Shrinkable<Object>>, TryExecutionResult> falsifiedTry = newShrinkingResult.get();
 				TryExecutionResult tryExecutionResult = falsifiedTry.get3();
 				FalsifiedSample falsifiedSample = new FalsifiedSampleImpl(
 					falsifiedTry.get1(),
@@ -76,7 +77,7 @@ abstract class AbstractSampleShrinker {
 				currentShrinkBase = falsifiedTry.get2();
 				filteredResults.clear();
 			} else if (!filteredResults.isEmpty()) {
-				Tuple3<List<Object>, List<Shrinkable<Object>>, TryExecutionResult> aFilteredResult = filteredResults.pop();
+				Tuple3<ParameterSet<Object>, ParameterSet<Shrinkable<Object>>, TryExecutionResult> aFilteredResult = filteredResults.pop();
 				currentShrinkBase = aFilteredResult.get2();
 			} else {
 				break;
@@ -86,27 +87,23 @@ abstract class AbstractSampleShrinker {
 		return bestResult.orElse(sample);
 	}
 
-	private TryExecutionResult falsify(Falsifier<List<Object>> falsifier, List<Object> params) {
+	private TryExecutionResult falsify(Falsifier<ParameterSet<Object>> falsifier, ParameterSet<Object> params) {
 		// I wonder in which cases this is really an optimization
 		return falsificationCache.computeIfAbsent(params, p -> falsifier.execute(params));
-	}
-
-	private Stream<Object> createValues(List<Shrinkable<Object>> shrinkables) {
-		return shrinkables.stream().map(Shrinkable::value);
 	}
 
 	private static class FilteredResults {
 
 		public static final int MAX_SIZE = 100;
 
-		Comparator<? super Tuple3<List<Object>, List<Shrinkable<Object>>, TryExecutionResult>> resultComparator =
+		Comparator<? super Tuple3<ParameterSet<Object>, ParameterSet<Shrinkable<Object>>, TryExecutionResult>> resultComparator =
 			Comparator.comparing(left -> calculateDistance(left.get2()));
 
-		PriorityQueue<Tuple3<List<Object>, List<Shrinkable<Object>>, TryExecutionResult>> prioritizedResults = new PriorityQueue<>(resultComparator);
+		PriorityQueue<Tuple3<ParameterSet<Object>, ParameterSet<Shrinkable<Object>>, TryExecutionResult>> prioritizedResults = new PriorityQueue<>(resultComparator);
 
-		Set<Tuple3<List<Object>, List<Shrinkable<Object>>, TryExecutionResult>> removedResults = new LinkedHashSet<>();
+		Set<Tuple3<ParameterSet<Object>, ParameterSet<Shrinkable<Object>>, TryExecutionResult>> removedResults = new LinkedHashSet<>();
 
-		void push(Tuple3<List<Object>, List<Shrinkable<Object>>, TryExecutionResult> result) {
+		void push(Tuple3<ParameterSet<Object>, ParameterSet<Shrinkable<Object>>, TryExecutionResult> result) {
 			if (removedResults.contains(result)) {
 				return;
 			}
@@ -124,8 +121,8 @@ abstract class AbstractSampleShrinker {
 			return prioritizedResults.isEmpty();
 		}
 
-		Tuple3<List<Object>, List<Shrinkable<Object>>, TryExecutionResult> pop() {
-			Tuple3<List<Object>, List<Shrinkable<Object>>, TryExecutionResult> result = prioritizedResults.peek();
+		Tuple3<ParameterSet<Object>, ParameterSet<Shrinkable<Object>>, TryExecutionResult> pop() {
+			Tuple3<ParameterSet<Object>, ParameterSet<Shrinkable<Object>>, TryExecutionResult> result = prioritizedResults.peek();
 			prioritizedResults.remove(result);
 			removedResults.add(result);
 			return result;

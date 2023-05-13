@@ -6,6 +6,7 @@ import java.util.function.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.descriptor.*;
 import net.jqwik.engine.execution.lifecycle.*;
 import net.jqwik.engine.properties.*;
@@ -79,9 +80,13 @@ public class CheckedPropertyFactory {
 		InvokePropertyMethodHook invokeMethod
 	) {
 		Method targetMethod = propertyLifecycleContext.targetMethod();
-		Function<List<Object>, Object> function = params -> {
+		Function<ParameterSet<Object>, Object> function = params -> {
 			try {
-				return invokeMethod.invoke(targetMethod, propertyLifecycleContext.testInstance(), params.toArray());
+				return invokeMethod.invoke(
+						targetMethod,
+						propertyLifecycleContext.testInstance(),
+						params.getDirect().toArray()
+				);
 			} catch (Throwable e) {
 				return JqwikExceptionSupport.throwAsUncheckedException(e);
 			}

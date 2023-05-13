@@ -6,6 +6,7 @@ import java.util.stream.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.properties.shrinking.*;
 
 public class GenerationInfo implements Serializable {
@@ -54,13 +55,13 @@ public class GenerationInfo implements Serializable {
 		return generationIndex;
 	}
 
-	public Optional<List<Shrinkable<Object>>> generateOn(ParametersGenerator generator, TryLifecycleContext context) {
-		List<Shrinkable<Object>> sample = useGenerationIndex(generator, context);
+	public Optional<ParameterSet<Shrinkable<Object>>> generateOn(ParametersGenerator generator, TryLifecycleContext context) {
+		ParameterSet<Shrinkable<Object>> sample = useGenerationIndex(generator, context);
 		return useShrinkingSequences(sample);
 	}
 
-	private Optional<List<Shrinkable<Object>>> useShrinkingSequences(List<Shrinkable<Object>> sample) {
-		Optional<List<Shrinkable<Object>>> shrunkSample = Optional.ofNullable(sample);
+	private Optional<ParameterSet<Shrinkable<Object>>> useShrinkingSequences(ParameterSet<Shrinkable<Object>> sample) {
+		Optional<ParameterSet<Shrinkable<Object>>> shrunkSample = Optional.ofNullable(sample);
 		for (List<TryExecutionResult.Status> shrinkingSequence : shrinkingSequences()) {
 			if (!shrunkSample.isPresent()) {
 				break;
@@ -70,16 +71,16 @@ public class GenerationInfo implements Serializable {
 		return shrunkSample;
 	}
 
-	private Optional<List<Shrinkable<Object>>> shrink(
-		List<Shrinkable<Object>> sample,
+	private Optional<ParameterSet<Shrinkable<Object>>> shrink(
+		ParameterSet<Shrinkable<Object>> sample,
 		List<TryExecutionResult.Status> shrinkingSequence
 	) {
 		ShrunkSampleRecreator recreator = new ShrunkSampleRecreator(sample);
 		return recreator.recreateFrom(shrinkingSequence);
 	}
 
-	private List<Shrinkable<Object>> useGenerationIndex(ParametersGenerator generator, TryLifecycleContext context) {
-		List<Shrinkable<Object>> sample = null;
+	private ParameterSet<Shrinkable<Object>> useGenerationIndex(ParametersGenerator generator, TryLifecycleContext context) {
+		ParameterSet<Shrinkable<Object>> sample = null;
 		for (int i = 0; i < generationIndex; i++) {
 			if (generator.hasNext()) {
 				sample = generator.next(context);

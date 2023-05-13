@@ -1,10 +1,12 @@
 package net.jqwik.engine.properties;
 
+import net.jqwik.api.Shrinkable;
+import net.jqwik.api.parameters.ParameterSet;
+
 import java.util.*;
 
-import net.jqwik.api.*;
 
-public interface ForAllParametersGenerator extends Iterator<List<Shrinkable<Object>>> {
+public interface ForAllParametersGenerator extends Iterator<ParameterSet<Shrinkable<Object>>> {
 
 	default int edgeCasesTotal() {
 		return 0;

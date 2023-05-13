@@ -3,11 +3,11 @@ package net.jqwik.engine.properties;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.*;
-import java.util.stream.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.Tuple.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.descriptor.*;
 import net.jqwik.engine.execution.*;
 import net.jqwik.engine.execution.lifecycle.*;
@@ -51,7 +51,7 @@ public class GenericProperty {
 			}
 			countTries++;
 
-			List<Shrinkable<Object>> shrinkableParams;
+			ParameterSet<Shrinkable<Object>> shrinkableParams;
 			TryLifecycleContext tryLifecycleContext = tryLifecycleContextSupplier.get();
 			try {
 				shrinkableParams = parametersGenerator.next(tryLifecycleContext);
@@ -62,7 +62,7 @@ public class GenericProperty {
 				return exhaustedCheckResult(countTries, countChecks, throwable);
 			}
 
-			List<Object> sample = extractParams(shrinkableParams);
+			ParameterSet<Object> sample = shrinkableParams.map(Shrinkable::value);
 			try {
 				countChecks++;
 				TryExecutionResult tryExecutionResult = testPredicate(tryLifecycleContext, sample, reporter, reporting);
@@ -155,7 +155,7 @@ public class GenericProperty {
 
 	private TryExecutionResult testPredicate(
 		TryLifecycleContext tryLifecycleContext,
-		List<Object> sample,
+		ParameterSet<Object> sample,
 		Reporter reporter,
 		Reporting[] reporting
 	) {
@@ -169,10 +169,6 @@ public class GenericProperty {
 	private boolean maxDiscardRatioExceeded(int countChecks, int countTries, int maxDiscardRatio) {
 		int actualDiscardRatio = (countTries - countChecks) / countChecks;
 		return actualDiscardRatio > maxDiscardRatio;
-	}
-
-	private List<Object> extractParams(List<Shrinkable<Object>> shrinkableParams) {
-		return shrinkableParams.stream().map(Shrinkable::value).collect(Collectors.toList());
 	}
 
 	private PropertyCheckResult shrinkAndCreateCheckResult(
@@ -210,7 +206,7 @@ public class GenericProperty {
 			targetMethod
 		);
 
-		Falsifier<List<Object>> forAllFalsifier = createFalsifier(tryLifecycleContextSupplier, tryLifecycleExecutor);
+		Falsifier<ParameterSet<Object>> forAllFalsifier = createFalsifier(tryLifecycleContextSupplier, tryLifecycleExecutor);
 		ShrunkFalsifiedSample falsifiedSample = shrinker.shrink(forAllFalsifier);
 		return Tuple.of(falsifiedSample, shrinker.shrinkingSequence());
 	}
@@ -225,7 +221,7 @@ public class GenericProperty {
 		};
 	}
 
-	private Falsifier<List<Object>> createFalsifier(Supplier<TryLifecycleContext> tryLifecycleContext, TryLifecycleExecutor tryExecutor) {
+	private Falsifier<ParameterSet<Object>> createFalsifier(Supplier<TryLifecycleContext> tryLifecycleContext, TryLifecycleExecutor tryExecutor) {
 		return params -> tryExecutor.execute(tryLifecycleContext.get(), params);
 	}
 

@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.stream.*;
 
 import net.jqwik.api.*;
+import net.jqwik.api.parameters.ParameterSet;
 
 public class SampleReporter {
 
@@ -13,7 +14,7 @@ public class SampleReporter {
 	static void reportSample(
 		StringBuilder stringBuilder,
 		Method propertyMethod,
-		List<Object> sample,
+		ParameterSet<Object> sample,
 		String headline,
 		int indentLevel,
 		Collection<SampleReportingFormat> sampleReportingFormats
@@ -24,8 +25,8 @@ public class SampleReporter {
 		sampleReporter.reportTo(lineReporter);
 	}
 
-	public static Map<String, Object> createSampleReports(Method propertyMethod, List<Object> sample) {
-		if (sample.size() != propertyMethod.getParameters().length) {
+	public static Map<String, Object> createSampleReports(Method propertyMethod, ParameterSet<Object> sample) {
+		if (sample.directSize() != propertyMethod.getParameters().length) {
 			throw new IllegalArgumentException("Number of sample parameters must be equal to number of parameter names");
 		}
 
@@ -36,13 +37,17 @@ public class SampleReporter {
 		return createReports(sample, parameterNames);
 	}
 
-	private static Map<String, Object> createReports(List<Object> sample, List<String> parameterNames) {
+	private static Map<String, Object> createReports(ParameterSet<Object> sample, List<String> parameterNames) {
 		LinkedHashMap<String, Object> samples = new LinkedHashMap<>();
-		for (int i = 0; i < sample.size(); i++) {
+		List<Object> direct = sample.getDirect();
+		for (int i = 0; i < direct.size(); i++) {
 			String parameterName = parameterNames.get(i);
-			Object parameter = sample.get(i);
+			Object parameter = direct.get(i);
 			samples.put(parameterName, parameter);
 		}
+
+		samples.putAll(sample.getDynamic());
+
 		return samples;
 	}
 

@@ -1,10 +1,9 @@
 package net.jqwik.engine.execution.reporting;
 
-import java.util.*;
-
 import net.jqwik.api.*;
 import net.jqwik.api.footnotes.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -40,7 +39,7 @@ class EnableFootnotesTests {
 	static class CheckFootnotesInOrder implements AroundTryHook {
 
 		@Override
-		public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) throws Throwable {
+		public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) throws Throwable {
 			TryExecutionResult result = aTry.execute(parameters);
 			if (result.isFalsified()) {
 				assertThat(result.footnotes()).hasSize(4);
@@ -63,7 +62,7 @@ class EnableFootnotesTests {
 	static class CheckAfterFailureFirst implements AroundTryHook {
 
 		@Override
-		public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) throws Throwable {
+		public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) throws Throwable {
 			TryExecutionResult result = aTry.execute(parameters);
 			if (result.isFalsified()) {
 				assertThat(result.footnotes()).hasSize(4);

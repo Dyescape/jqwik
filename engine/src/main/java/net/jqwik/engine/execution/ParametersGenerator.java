@@ -1,21 +1,20 @@
 package net.jqwik.engine.execution;
 
-import java.util.*;
-
-import net.jqwik.api.*;
+import net.jqwik.api.Shrinkable;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 
 public interface ParametersGenerator {
 
-	boolean hasNext();
+    boolean hasNext();
 
-	List<Shrinkable<Object>> next(TryLifecycleContext context);
+    ParameterSet<Shrinkable<Object>> next(TryLifecycleContext context);
 
-	int edgeCasesTotal();
+    int edgeCasesTotal();
 
-	int edgeCasesTried();
+    int edgeCasesTried();
 
-	GenerationInfo generationInfo(String randomSeed);
+    GenerationInfo generationInfo(String randomSeed);
 
-	void reset();
+    void reset();
 }

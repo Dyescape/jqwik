@@ -1,7 +1,6 @@
 package net.jqwik.engine.execution.lifecycle;
 
-import java.util.*;
-
+import net.jqwik.api.parameters.ParameterSet;
 import org.opentest4j.*;
 
 import net.jqwik.api.lifecycle.*;
@@ -18,7 +17,7 @@ public class AroundTryLifecycle implements TryLifecycleExecutor {
 	}
 
 	@Override
-	public TryExecutionResult execute(TryLifecycleContext tryLifecycleContext, List<Object> parameters) {
+	public TryExecutionResult execute(TryLifecycleContext tryLifecycleContext, ParameterSet<Object> parameters) {
 		try {
 			return aroundTry.aroundTry(tryLifecycleContext, tryExecutor, parameters);
 		} catch (TestAbortedException tea) {

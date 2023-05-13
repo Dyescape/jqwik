@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.stream.*;
 
 import net.jqwik.api.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.api.providers.*;
 import net.jqwik.engine.support.*;
 import net.jqwik.engine.support.types.*;
@@ -26,10 +27,15 @@ public class DataBasedShrinkablesGenerator implements ForAllParametersGenerator 
 	}
 
 	@Override
-	public List<Shrinkable<Object>> next() {
+	public ParameterSet<Shrinkable<Object>> next() {
 		Tuple tuple = iterator.next();
 		checkCompatibility(tuple);
-		return tuple.items().stream().map(Shrinkable::unshrinkable).collect(Collectors.toList());
+
+		List<Shrinkable<Object>> direct = tuple.items()
+				.stream()
+				.map(Shrinkable::unshrinkable).collect(Collectors.toList());
+
+		return ParameterSet.direct(direct);
 	}
 
 	@Override

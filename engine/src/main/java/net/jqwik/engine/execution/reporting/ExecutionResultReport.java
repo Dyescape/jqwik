@@ -2,8 +2,8 @@ package net.jqwik.engine.execution.reporting;
 
 import java.lang.reflect.*;
 import java.util.*;
-import java.util.stream.*;
 
+import net.jqwik.api.parameters.ParameterSet;
 import org.opentest4j.*;
 
 import net.jqwik.api.*;
@@ -64,8 +64,8 @@ public class ExecutionResultReport {
 		Collection<SampleReportingFormat> sampleReportingFormats
 	) {
 		executionResult.shrunkSample().ifPresent(shrunkSample -> {
-			List<Object> parameters = shrunkSample.shrinkables().stream().map(Shrinkable::value).collect(Collectors.toList());
-			List<Object> parametersAfterRun = shrunkSample.parameters();
+			ParameterSet<Object> parameters = shrunkSample.shrinkables().map(Shrinkable::value);
+			ParameterSet<Object> parametersAfterRun = shrunkSample.parameters();
 			if (!parameters.isEmpty()) {
 				String shrunkSampleHeadline = String.format("%s (%s steps)", SHRUNK_SAMPLE_HEADLINE, shrunkSample.countShrinkingSteps());
 				SampleReporter.reportSample(reportBuilder, propertyMethod, parameters, shrunkSampleHeadline, 0, sampleReportingFormats);
@@ -76,8 +76,8 @@ public class ExecutionResultReport {
 
 		executionResult.originalSample().ifPresent(originalSample -> {
 			String originalSampleHeadline = executionResult.shrunkSample().isPresent() ? ORIGINAL_SAMPLE_HEADLINE : SAMPLE_HEADLINE;
-			List<Object> parameters = originalSample.shrinkables().stream().map(Shrinkable::value).collect(Collectors.toList());
-			List<Object> parametersAfterRun = originalSample.parameters();
+			ParameterSet<Object> parameters = originalSample.shrinkables().map(Shrinkable::value);
+			ParameterSet<Object> parametersAfterRun = originalSample.parameters();
 			if (!parameters.isEmpty()) {
 				SampleReporter.reportSample(reportBuilder, propertyMethod, parameters, originalSampleHeadline, 0, sampleReportingFormats);
 				reportParameterChanges(reportBuilder, propertyMethod, parameters, parametersAfterRun, sampleReportingFormats);
@@ -105,8 +105,8 @@ public class ExecutionResultReport {
 	private static void reportParameterChanges(
 		StringBuilder reportBuilder,
 		Method propertyMethod,
-		List<Object> parameters,
-		List<Object> parametersAfterRun,
+		ParameterSet<Object> parameters,
+		ParameterSet<Object> parametersAfterRun,
 		Collection<SampleReportingFormat> sampleReportingFormats
 	) {
 		if (!ParameterChangesDetector.haveParametersChanged(parameters, parametersAfterRun)) {
@@ -126,8 +126,8 @@ public class ExecutionResultReport {
 
 	private static boolean hasDifferentOutput(
 		Method propertyMethod,
-		List<Object> parameters,
-		List<Object> parametersAfterRun,
+		ParameterSet<Object> parameters,
+		ParameterSet<Object> parametersAfterRun,
 		Collection<SampleReportingFormat> sampleReportingFormats
 	) {
 		StringBuilder beforeBuilder = new StringBuilder();

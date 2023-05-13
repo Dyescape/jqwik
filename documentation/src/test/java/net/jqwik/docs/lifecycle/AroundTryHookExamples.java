@@ -2,6 +2,7 @@ package net.jqwik.docs.lifecycle;
 
 import java.util.*;
 
+import net.jqwik.api.parameters.ParameterSet;
 import org.opentest4j.*;
 
 import net.jqwik.api.*;
@@ -22,7 +23,7 @@ class FailIfTooSlow implements AroundTryHook {
 	public TryExecutionResult aroundTry(
 		final TryLifecycleContext context,
 		final TryExecutor aTry,
-		final List<Object> parameters
+		final ParameterSet<Object> parameters
 	) {
 		long before = System.currentTimeMillis();
 		TryExecutionResult result = aTry.execute(parameters);

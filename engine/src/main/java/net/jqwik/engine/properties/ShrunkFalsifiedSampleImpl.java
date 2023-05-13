@@ -4,6 +4,7 @@ import java.util.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.api.support.*;
 
 public class ShrunkFalsifiedSampleImpl extends FalsifiedSampleImpl implements ShrunkFalsifiedSample {
@@ -18,8 +19,8 @@ public class ShrunkFalsifiedSampleImpl extends FalsifiedSampleImpl implements Sh
 	}
 
 	public ShrunkFalsifiedSampleImpl(
-		List<Object> parameters,
-		List<Shrinkable<Object>> shrinkables,
+		ParameterSet<Object> parameters,
+		ParameterSet<Shrinkable<Object>> shrinkables,
 		Optional<Throwable> falsifyingError,
 		int shrinkingSteps,
 		List<String> footnotes

@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.stream.*;
 
 import net.jqwik.api.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.support.*;
 import net.jqwik.engine.support.types.*;
 
@@ -19,7 +20,7 @@ public class ExhaustiveShrinkablesGenerator implements ForAllParametersGenerator
 					  .map(parameter -> resolveParameter(arbitraryResolver, parameter, maxNumberOfSamples))
 					  .collect(Collectors.toList());
 
-		return new ExhaustiveShrinkablesGenerator(exhaustiveGenerators);
+		return new ExhaustiveShrinkablesGenerator(ParameterSet.direct(exhaustiveGenerators));
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})
@@ -46,12 +47,12 @@ public class ExhaustiveShrinkablesGenerator implements ForAllParametersGenerator
 
 	}
 
-	private final List<List<ExhaustiveGenerator<Object>>> generators;
+	private final ParameterSet<List<ExhaustiveGenerator<Object>>> generators;
 	private final long maxCount;
-	private Iterator<List<Shrinkable<Object>>> combinatorialIterator;
+	private Iterator<ParameterSet<Shrinkable<Object>>> combinatorialIterator;
 
-	private ExhaustiveShrinkablesGenerator(List<List<ExhaustiveGenerator<Object>>> generators) {
-		this.maxCount = generators
+	private ExhaustiveShrinkablesGenerator(ParameterSet<List<ExhaustiveGenerator<Object>>> generators) {
+		this.maxCount = generators.all()
 							.stream()
 							.mapToLong(set -> set.stream().mapToLong(ExhaustiveGenerator::maxCount).sum())
 							.reduce((product, count) -> product * count)
@@ -60,14 +61,11 @@ public class ExhaustiveShrinkablesGenerator implements ForAllParametersGenerator
 		this.reset();
 	}
 
-	private Iterator<List<Shrinkable<Object>>> combine(List<List<ExhaustiveGenerator<Object>>> generators) {
-		List<Iterable<Object>> iterables = generators
-											   .stream()
-											   .map(this::concat)
-											   .collect(Collectors.toList());
+	private Iterator<ParameterSet<Shrinkable<Object>>> combine(ParameterSet<List<ExhaustiveGenerator<Object>>> generators) {
+		ParameterSet<Iterable<Object>> iterables = generators.map(this::concat);
 
-		return new Iterator<List<Shrinkable<Object>>>() {
-			final Iterator<List<Object>> iterator = Combinatorics.combine(iterables);
+		return new Iterator<ParameterSet<Shrinkable<Object>>>() {
+			final Iterator<ParameterSet<Object>> iterator = Combinatorics.combineParameters(iterables);
 
 			@Override
 			public boolean hasNext() {
@@ -75,12 +73,8 @@ public class ExhaustiveShrinkablesGenerator implements ForAllParametersGenerator
 			}
 
 			@Override
-			public List<Shrinkable<Object>> next() {
-				List<Shrinkable<Object>> values = new ArrayList<>();
-				for (Object o : iterator.next()) {
-					values.add(Shrinkable.unshrinkable(o));
-				}
-				return values;
+			public ParameterSet<Shrinkable<Object>> next() {
+				return iterator.next().map(Shrinkable::unshrinkable);
 			}
 		};
 	}
@@ -99,7 +93,7 @@ public class ExhaustiveShrinkablesGenerator implements ForAllParametersGenerator
 	}
 
 	@Override
-	public List<Shrinkable<Object>> next() {
+	public ParameterSet<Shrinkable<Object>> next() {
 		return combinatorialIterator.next();
 	}
 

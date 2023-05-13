@@ -6,6 +6,7 @@ import java.util.function.*;
 import net.jqwik.api.*;
 import net.jqwik.api.constraints.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.api.stateful.*;
 import net.jqwik.testing.*;
 
@@ -31,8 +32,8 @@ class ActionSequenceShrinkingTests {
 			assertThat(result.throwable()).isPresent();
 			assertThat(result.throwable().get()).isInstanceOf(AssertionError.class);
 
-			List<Object> sample = result.falsifiedParameters().get();
-			assertThat(sample).hasSize(1);
+			ParameterSet<Object> sample = result.falsifiedParameters().get();
+			assertThat(sample.directSize()).isEqualTo(1);
 
 			ActionSequence<String> sequence = (ActionSequence<String>) sample.get(0);
 			assertThat(sequence.runActions()).hasSize(1);

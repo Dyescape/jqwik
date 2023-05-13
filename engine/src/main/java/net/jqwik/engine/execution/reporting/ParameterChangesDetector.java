@@ -4,14 +4,20 @@ import java.lang.reflect.*;
 import java.util.*;
 
 import net.jqwik.api.*;
+import net.jqwik.api.parameters.ParameterSet;
 
 class ParameterChangesDetector {
 
-	static boolean haveParametersChanged(List<Object> before, List<Object> after) {
+	static boolean haveParametersChanged(ParameterSet<Object> before, ParameterSet<Object> after) {
 		return atLeastOneParameterHasChanged(before, after);
 	}
 
-	private static boolean atLeastOneParameterHasChanged(List<Object> before, List<Object> after) {
+	private static boolean atLeastOneParameterHasChanged(ParameterSet<Object> before, ParameterSet<Object> after) {
+		return atLeastOneHasChanged(before.getDirect(), after.getDirect())
+				|| atLeastOneDynamicParameterHasChanged(before.getDynamic(), after.getDynamic());
+	}
+
+	private static boolean atLeastOneHasChanged(List<Object> before, List<Object> after) {
 		if (before.size() != after.size()) {
 			return true;
 		}
@@ -22,6 +28,24 @@ class ParameterChangesDetector {
 				return true;
 			}
 		}
+		return false;
+	}
+
+	private static boolean atLeastOneDynamicParameterHasChanged(Map<String, Object> before, Map<String, Object> after) {
+		Set<String> keySet = before.keySet();
+
+		if (!keySet.equals(after.keySet())) {
+			return true;
+		}
+
+		for (String key : keySet) {
+			Object beforeValue = before.get(key);
+			Object afterValue = after.get(key);
+			if (valuesDiffer(beforeValue, afterValue)) {
+				return true;
+			}
+		}
+
 		return false;
 	}
 
@@ -47,7 +71,7 @@ class ParameterChangesDetector {
 	}
 
 	private static boolean tupleValuesDiffer(Tuple before, Tuple after) {
-		return atLeastOneParameterHasChanged(before.items(), after.items());
+		return atLeastOneHasChanged(before.items(), after.items());
 	}
 
 	private static boolean hasOwnEqualsImplementation(Class<?> aClass) {

@@ -1,18 +1,18 @@
 package net.jqwik.engine.properties;
 
-import java.util.*;
 import java.util.function.*;
 
+import net.jqwik.api.parameters.ParameterSet;
 import org.opentest4j.*;
 
 import net.jqwik.api.lifecycle.*;
 import net.jqwik.engine.execution.lifecycle.*;
 
 @FunctionalInterface
-public interface CheckedFunction extends Predicate<List<Object>>, TryExecutor, TryLifecycleExecutor {
+public interface CheckedFunction extends Predicate<ParameterSet<Object>>, TryExecutor, TryLifecycleExecutor {
 
 	@Override
-	default TryExecutionResult execute(List<Object> parameters) {
+	default TryExecutionResult execute(ParameterSet<Object> parameters) {
 		try {
 			boolean result = this.test(parameters);
 			return result ? TryExecutionResult.satisfied() : TryExecutionResult.falsified(null);
@@ -27,7 +27,7 @@ public interface CheckedFunction extends Predicate<List<Object>>, TryExecutor, T
 	 * Only needed to simplify some tests
 	 */
 	@Override
-	default TryExecutionResult execute(TryLifecycleContext tryLifecycleContext, List<Object> parameters) {
+	default TryExecutionResult execute(TryLifecycleContext tryLifecycleContext, ParameterSet<Object> parameters) {
 		return execute(parameters);
 	}
 }

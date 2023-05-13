@@ -2,11 +2,11 @@ package net.jqwik.engine.facades;
 
 import java.util.*;
 import java.util.function.*;
-import java.util.stream.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.facades.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.properties.*;
 import net.jqwik.engine.properties.shrinking.*;
 
@@ -65,7 +65,7 @@ public class ShrinkingSupportFacadeImpl extends ShrinkingSupportFacade {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> Falsifier<List<Object>> toParamFalsifier(Falsifier<T> tFalsifier) {
+	private static <T> Falsifier<ParameterSet<Object>> toParamFalsifier(Falsifier<T> tFalsifier) {
 		return params -> {
 			T t = (T) params.get(0);
 			return tFalsifier.execute(t);
@@ -75,11 +75,11 @@ public class ShrinkingSupportFacadeImpl extends ShrinkingSupportFacade {
 	@SuppressWarnings("unchecked")
 	private static <T> FalsifiedSample toFalsifiedSample(Shrinkable<T> falsifiedShrinkable, Throwable originalError) {
 		List<Shrinkable<Object>> shrinkables = Collections.singletonList((Shrinkable<Object>) falsifiedShrinkable);
-		return toFalsifiedSample(shrinkables, originalError);
+		return toFalsifiedSample(ParameterSet.direct(shrinkables), originalError);
 	}
 
-	private static FalsifiedSample toFalsifiedSample(List<Shrinkable<Object>> shrinkables, Throwable originalError) {
-		List<Object> parameters = shrinkables.stream().map(Shrinkable::value).collect(Collectors.toList());
+	private static FalsifiedSample toFalsifiedSample(ParameterSet<Shrinkable<Object>> shrinkables, Throwable originalError) {
+		ParameterSet<Object> parameters = shrinkables.map(Shrinkable::value);
 		return new FalsifiedSampleImpl(parameters, shrinkables, Optional.ofNullable(originalError), Collections.emptyList());
 	}
 

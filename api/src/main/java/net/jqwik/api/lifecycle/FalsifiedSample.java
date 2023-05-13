@@ -2,9 +2,9 @@ package net.jqwik.api.lifecycle;
 
 import java.util.*;
 
+import net.jqwik.api.Shrinkable;
+import net.jqwik.api.parameters.ParameterSet;
 import org.apiguardian.api.*;
-
-import net.jqwik.api.*;
 
 import static org.apiguardian.api.API.Status.*;
 
@@ -29,7 +29,7 @@ public interface FalsifiedSample {
 	 *
 	 * @return list of objects of same size as list returned by {@linkplain #shrinkables()}.
 	 */
-	List<Object> parameters();
+	ParameterSet<Object> parameters();
 
 	/**
 	 * The list of shrinkables that were used to generate the parameters.
@@ -42,7 +42,7 @@ public interface FalsifiedSample {
 	 *
 	 * @return list of shrinkables of same size as list returned by {@linkplain #parameters()}.
 	 */
-	List<Shrinkable<Object>> shrinkables();
+	ParameterSet<Shrinkable<Object>> shrinkables();
 
 	/**
 	 * The error which resulted in falsifying a property.

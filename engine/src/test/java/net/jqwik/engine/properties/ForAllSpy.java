@@ -1,9 +1,10 @@
 package net.jqwik.engine.properties;
 
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.*;
 import java.util.function.*;
 
+import net.jqwik.api.parameters.ParameterSet;
 import org.assertj.core.api.*;
 
 import net.jqwik.api.lifecycle.*;
@@ -24,9 +25,9 @@ class ForAllSpy implements TryLifecycleExecutor {
 		this(returnFunc, args -> true);
 	}
 
-	private boolean test(List<Object> parameters) {
+	private boolean test(ParameterSet<Object> parameters) {
 		count.incrementAndGet();
-		Assertions.assertThat(argumentsVerifier.apply(parameters)).describedAs("Arguments don't match expectation.").isTrue();
+		Assertions.assertThat(argumentsVerifier.apply(parameters.getDirect())).describedAs("Arguments don't match expectation.").isTrue();
 		return returnFunc.apply(count.get());
 	}
 
@@ -35,7 +36,7 @@ class ForAllSpy implements TryLifecycleExecutor {
 	}
 
 	@Override
-	public TryExecutionResult execute(TryLifecycleContext tryLifecycleContext, List<Object> parameters) {
+	public TryExecutionResult execute(TryLifecycleContext tryLifecycleContext, ParameterSet<Object> parameters) {
 		CheckedFunction checkedFunction = this::test;
 		return checkedFunction.execute(parameters);
 	}

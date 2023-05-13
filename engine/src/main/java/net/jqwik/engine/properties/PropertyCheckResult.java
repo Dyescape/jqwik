@@ -2,6 +2,8 @@ package net.jqwik.engine.properties;
 
 import java.util.*;
 
+import net.jqwik.api.parameters.ParameterReference;
+import net.jqwik.api.parameters.ParameterSet;
 import org.opentest4j.*;
 
 import net.jqwik.api.*;
@@ -195,7 +197,7 @@ public class PropertyCheckResult implements ExtendedPropertyExecutionResult {
 	}
 
 	@Override
-	public Optional<List<Object>> falsifiedParameters() {
+	public Optional<ParameterSet<Object>> falsifiedParameters() {
 		if (shrunkSample != null) {
 			return Optional.of(shrunkSample.parameters());
 		} else {
@@ -307,10 +309,10 @@ public class PropertyCheckResult implements ExtendedPropertyExecutionResult {
 		switch (checkStatus()) {
 			case FAILED:
 				String failedMessage = falsifiedParameters().map(sampleParams -> {
-					Map<Integer, Object> sampleMap = new LinkedHashMap<>();
-					for (int i = 0; i < sampleParams.size(); i++) {
-						Object parameter = sampleParams.get(i);
-						sampleMap.put(i, parameter);
+					Map<String, Object> sampleMap = new LinkedHashMap<>();
+					for (ParameterReference reference : sampleParams.references()) {
+						Object parameter = sampleParams.get(reference);
+						sampleMap.put(reference.toString(), parameter);
 					}
 
 					Collection<SampleReportingFormat> reportingFormats = SampleReportingFormats.getReportingFormats();

@@ -3,6 +3,7 @@ package net.jqwik.engine.execution;
 import java.io.*;
 import java.util.*;
 
+import net.jqwik.api.parameters.ParameterSet;
 import org.mockito.*;
 
 import net.jqwik.api.*;
@@ -62,7 +63,7 @@ class GenerationInfoTests {
 		void generateWithoutShrinkingSequence() {
 			GenerationInfo generationInfo = new GenerationInfo("4242", 14);
 
-			Optional<List<Shrinkable<Object>>> sample = generationInfo.generateOn(generator, context);
+			Optional<ParameterSet<Shrinkable<Object>>> sample = generationInfo.generateOn(generator, context);
 			assertThat(sample).isPresent();
 			sample.ifPresent(shrinkables -> {
 				Object value = shrinkables.get(0).value();
@@ -76,7 +77,7 @@ class GenerationInfoTests {
 			GenerationInfo generationInfo = new GenerationInfo("4242", 23)
 				.appendShrinkingSequence(Arrays.asList(SATISFIED, SATISFIED, FALSIFIED));
 
-			Optional<List<Shrinkable<Object>>> sample = generationInfo.generateOn(generator, context);
+			Optional<ParameterSet<Shrinkable<Object>>> sample = generationInfo.generateOn(generator, context);
 			assertThat(sample).isPresent();
 			sample.ifPresent(shrinkables -> {
 				Object value = shrinkables.get(0).value();
@@ -90,7 +91,7 @@ class GenerationInfoTests {
 			GenerationInfo generationInfo = new GenerationInfo("4242", 45)
 				.appendShrinkingSequence(Arrays.asList(SATISFIED, SATISFIED, INVALID, SATISFIED, FALSIFIED));
 
-			Optional<List<Shrinkable<Object>>> sample = generationInfo.generateOn(generator, context);
+			Optional<ParameterSet<Shrinkable<Object>>> sample = generationInfo.generateOn(generator, context);
 			assertThat(sample).isPresent();
 			sample.ifPresent(shrinkables -> {
 				Object value = shrinkables.get(0).value();
@@ -107,7 +108,7 @@ class GenerationInfoTests {
 					SATISFIED, FALSIFIED
 				));
 
-			Optional<List<Shrinkable<Object>>> sample = generationInfo.generateOn(generator, context);
+			Optional<ParameterSet<Shrinkable<Object>>> sample = generationInfo.generateOn(generator, context);
 			assertThat(sample).isPresent();
 			sample.ifPresent(shrinkables -> {
 				Object value = shrinkables.get(0).value();
@@ -122,7 +123,7 @@ class GenerationInfoTests {
 				.appendShrinkingSequence(Arrays.asList(SATISFIED, SATISFIED, SATISFIED, SATISFIED, SATISFIED, SATISFIED, FALSIFIED))
 				.appendShrinkingSequence(Arrays.asList(SATISFIED, SATISFIED, FALSIFIED));
 
-			Optional<List<Shrinkable<Object>>> sample = generationInfo.generateOn(generator, context);
+			Optional<ParameterSet<Shrinkable<Object>>> sample = generationInfo.generateOn(generator, context);
 			assertThat(sample).isPresent();
 			sample.ifPresent(shrinkables -> {
 				Object value = shrinkables.get(0).value();
@@ -134,7 +135,7 @@ class GenerationInfoTests {
 		void noGenerationWithoutGenerationIndex() {
 			GenerationInfo generationInfo = new GenerationInfo("4242");
 
-			Optional<List<Shrinkable<Object>>> sample = generationInfo.generateOn(generator, context);
+			Optional<ParameterSet<Shrinkable<Object>>> sample = generationInfo.generateOn(generator, context);
 			assertThat(sample).isEmpty();
 		}
 
@@ -143,7 +144,7 @@ class GenerationInfoTests {
 			GenerationInfo generationInfo = new GenerationInfo("4242", 1)
 				.appendShrinkingSequence(Arrays.asList(FALSIFIED, FALSIFIED, FALSIFIED));
 
-			Optional<List<Shrinkable<Object>>> sample = generationInfo.generateOn(generator, context);
+			Optional<ParameterSet<Shrinkable<Object>>> sample = generationInfo.generateOn(generator, context);
 			assertThat(sample).isEmpty();
 		}
 	}

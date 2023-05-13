@@ -6,6 +6,7 @@ import java.util.stream.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.Tuple.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.support.combinatorics.*;
 
 import static java.util.Arrays.*;
@@ -17,6 +18,17 @@ public class Combinatorics {
 			return emptyListSingleton();
 		}
 		return new CombinedIterator<>(listOfIterables);
+	}
+
+	public static <T> Iterator<ParameterSet<T>> combineParameters(ParameterSet<Iterable<T>> listOfParameters) {
+		if (listOfParameters.isEmpty()) {
+			return emptyParametersSingleton();
+		}
+		return new CombinedParameterIterator<>(listOfParameters);
+	}
+
+	private static <T> Iterator<ParameterSet<T>> emptyParametersSingleton() {
+		return asList(ParameterSet.<T>empty()).iterator();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -86,6 +98,21 @@ public class Combinatorics {
 			for (int j = i + 1; j < maxExclusive; j++) {
 				if (i != j) {
 					pairs.add(Tuple.of(i, j));
+				}
+			}
+		}
+		return pairs.stream();
+	}
+
+	public static <T> Stream<Tuple2<T, T>> distinctPairs(List<T> values) {
+		if (values.size() < 2) {
+			return Stream.empty();
+		}
+		List<Tuple2<T, T>> pairs = new ArrayList<>();
+		for (int i = 0; i < values.size(); i++) {
+			for (int j = i + 1; j < values.size(); j++) {
+				if (i != j) {
+					pairs.add(Tuple.of(values.get(i), values.get(j)));
 				}
 			}
 		}

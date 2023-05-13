@@ -1,7 +1,6 @@
 package net.jqwik.engine.execution.lifecycle;
 
-import java.util.*;
-
+import net.jqwik.api.parameters.ParameterSet;
 import org.assertj.core.api.*;
 
 import net.jqwik.api.*;
@@ -84,7 +83,7 @@ class RegisterCountTries implements RegistrarHook {
 class CountTries implements AroundTryHook {
 
 	@Override
-	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) {
+	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) {
 		RegistrarHookTests.countTries++;
 		return aTry.execute(parameters);
 	}

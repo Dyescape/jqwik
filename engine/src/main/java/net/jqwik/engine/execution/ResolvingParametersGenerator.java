@@ -5,6 +5,7 @@ import java.util.*;
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.*;
 import net.jqwik.api.lifecycle.ResolveParameterHook.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.properties.*;
 import net.jqwik.engine.support.*;
 
@@ -31,21 +32,22 @@ public class ResolvingParametersGenerator implements ParametersGenerator {
 	}
 
 	@Override
-	public List<Shrinkable<Object>> next(TryLifecycleContext context) {
+	public ParameterSet<Shrinkable<Object>> next(TryLifecycleContext context) {
 		List<Shrinkable<Object>> next = new ArrayList<>();
-		List<Shrinkable<Object>> forAllShrinkables = new ArrayList<>(forAllParametersGenerator.next());
+		ParameterSet<Shrinkable<Object>> generated = forAllParametersGenerator.next();
+		List<Shrinkable<Object>> forAllDirect = generated.getDirect();
 
 		for (MethodParameter parameter : propertyParameters) {
 			if (parameter.isAnnotated(ForAll.class)) {
-				next.add(forAllShrinkables.get(0));
-				forAllShrinkables.remove(0);
+				next.add(forAllDirect.get(0));
+				forAllDirect.remove(0);
 			} else {
 				next.add(findResolvableParameter(parameter, context));
 			}
 		}
 
 		currentGenerationIndex++;
-		return next;
+		return new ParameterSet<>(next, generated.getDynamic());
 	}
 
 	@Override

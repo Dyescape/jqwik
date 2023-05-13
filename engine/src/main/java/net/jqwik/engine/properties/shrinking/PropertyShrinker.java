@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.*;
 import java.util.function.*;
 import java.util.logging.*;
 
+import net.jqwik.api.parameters.ParameterSet;
 import org.junit.platform.engine.*;
 
 import net.jqwik.api.*;
@@ -46,12 +47,12 @@ public class PropertyShrinker {
 		this.targetMethod = targetMethod;
 	}
 
-	public ShrunkFalsifiedSample shrink(Falsifier<List<Object>> forAllFalsifier) {
+	public ShrunkFalsifiedSample shrink(Falsifier<ParameterSet<Object>> forAllFalsifier) {
 		if (shrinkingMode == ShrinkingMode.OFF) {
 			return unshrunkOriginalSample();
 		}
 
-		Falsifier<List<Object>> allowOnlyEquivalentErrorsFalsifier = sample -> {
+		Falsifier<ParameterSet<Object>> allowOnlyEquivalentErrorsFalsifier = sample -> {
 			TryExecutionResult result = forAllFalsifier.execute(sample);
 			if (isFalsifiedButErrorIsNotEquivalent(result, originalSample.falsifyingError())) {
 				return TryExecutionResult.invalid();
@@ -79,7 +80,7 @@ public class PropertyShrinker {
 	}
 
 	private ShrunkFalsifiedSample shrink(
-		Falsifier<List<Object>> falsifier,
+		Falsifier<ParameterSet<Object>> falsifier,
 		Consumer<FalsifiedSample> sampleShrunkConsumer,
 		Consumer<FalsifiedSample> shrinkAttemptConsumer
 	) {
@@ -114,11 +115,11 @@ public class PropertyShrinker {
 	}
 
 	private FalsifiedSample shrinkAsLongAsSampleImproves(
-		final Falsifier<List<Object>> falsifier,
+		final Falsifier<ParameterSet<Object>> falsifier,
 		final Consumer<FalsifiedSample> sampleShrunkConsumer,
 		final Consumer<FalsifiedSample> shrinkAttemptConsumer
 	) {
-		Falsifier<List<Object>> recordingFalsifier = params -> {
+		Falsifier<ParameterSet<Object>> recordingFalsifier = params -> {
 			TryExecutionResult executionResult = falsifier.execute(params);
 			if (!shrinkingInterrupted) {
 				shrinkingSequence.add(executionResult.status());

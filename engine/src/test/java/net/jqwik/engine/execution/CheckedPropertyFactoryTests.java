@@ -4,6 +4,7 @@ import java.util.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.*;
 import net.jqwik.engine.descriptor.*;
 
@@ -34,8 +35,8 @@ public class CheckedPropertyFactoryTests {
 		assertThat(property.propertyParameters.get(0).getType()).isEqualTo(int.class);
 		assertThat(property.propertyParameters.get(1).getType()).isEqualTo(String.class);
 
-		List<Object> argsTrue = Arrays.asList(1, "test");
-		List<Object> argsFalse = Arrays.asList(2, "test");
+		ParameterSet<Object> argsTrue = ParameterSet.direct(Arrays.asList(1, "test"));
+		ParameterSet<Object> argsFalse = ParameterSet.direct(Arrays.asList(2, "test"));
 		assertThat(property.tryLifecycleExecutor.execute(null, argsTrue).status()).isEqualTo(SATISFIED);
 		assertThat(property.tryLifecycleExecutor.execute(null, argsFalse).status()).isEqualTo(FALSIFIED);
 
@@ -90,7 +91,7 @@ public class CheckedPropertyFactoryTests {
 
 		assertThat(property.propertyParameters).size().isEqualTo(0);
 
-		List<Object> noArgs = Arrays.asList();
+		ParameterSet<Object> noArgs = ParameterSet.empty();
 		assertThat(property.tryLifecycleExecutor.execute(null, noArgs).status()).isEqualTo(SATISFIED);
 	}
 

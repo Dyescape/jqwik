@@ -2,10 +2,10 @@ package net.jqwik.engine.properties;
 
 import java.lang.reflect.*;
 import java.util.*;
-import java.util.stream.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.domains.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.*;
 import net.jqwik.engine.descriptor.*;
 import net.jqwik.engine.support.*;
@@ -18,7 +18,7 @@ class RandomizedShrinkablesGeneratorTests {
 	@Example
 	void useSimpleRegisteredArbitraryProviders(@ForAll Random random) {
 		RandomizedShrinkablesGenerator shrinkablesGenerator = createGenerator(random, "simpleParameters");
-		List<Shrinkable<Object>> shrinkables = shrinkablesGenerator.next();
+		ParameterSet<Shrinkable<Object>> shrinkables = shrinkablesGenerator.next();
 
 		assertThat(shrinkables.get(0).value()).isInstanceOf(String.class);
 		assertThat(shrinkables.get(1).value()).isInstanceOf(Integer.class);
@@ -28,14 +28,14 @@ class RandomizedShrinkablesGeneratorTests {
 	void resetting(@ForAll Random random) {
 		RandomizedShrinkablesGenerator shrinkablesGenerator = createGenerator(random, "simpleParameters");
 
-		List<Object> values1 = values(shrinkablesGenerator.next());
-		List<Object> values2 = values(shrinkablesGenerator.next());
-		List<Object> values3 = values(shrinkablesGenerator.next());
+		List<Object> values1 = shrinkablesGenerator.next().map(Shrinkable::value).getDirect();
+		List<Object> values2 = shrinkablesGenerator.next().map(Shrinkable::value).getDirect();
+		List<Object> values3 = shrinkablesGenerator.next().map(Shrinkable::value).getDirect();
 
 		shrinkablesGenerator.reset();
-		assertThat(values(shrinkablesGenerator.next())).isEqualTo(values1);
-		assertThat(values(shrinkablesGenerator.next())).isEqualTo(values2);
-		assertThat(values(shrinkablesGenerator.next())).isEqualTo(values3);
+		assertThat(shrinkablesGenerator.next().map(Shrinkable::value).getDirect()).isEqualTo(values1);
+		assertThat(shrinkablesGenerator.next().map(Shrinkable::value).getDirect()).isEqualTo(values2);
+		assertThat(shrinkablesGenerator.next().map(Shrinkable::value).getDirect()).isEqualTo(values3);
 	}
 
 	@Example
@@ -121,8 +121,8 @@ class RandomizedShrinkablesGeneratorTests {
 
 	private void assertAtLeastOneGenerated(ForAllParametersGenerator generator, List<Object> expected) {
 		for (int i = 0; i < 500; i++) {
-			List<Shrinkable<Object>> shrinkables = generator.next();
-			if (values(shrinkables).equals(expected))
+			ParameterSet<Shrinkable<Object>> shrinkables = generator.next();
+			if (shrinkables.map(Shrinkable::value).getDirect().equals(expected))
 				return;
 		}
 		fail("Failed to generate at least once");
@@ -130,14 +130,11 @@ class RandomizedShrinkablesGeneratorTests {
 
 	private void assertNeverGenerated(ForAllParametersGenerator generator, List<Object> expected) {
 		for (int i = 0; i < 500; i++) {
-			List<Shrinkable<Object>> shrinkables = generator.next();
-			if (values(shrinkables).equals(expected))
-				fail(String.format("%s should never be generated", values(shrinkables)));
+			ParameterSet<Shrinkable<Object>> shrinkables = generator.next();
+			List<Object> values = shrinkables.map(Shrinkable::value).getDirect();
+			if (values.equals(expected))
+				fail(String.format("%s should never be generated", values));
 		}
-	}
-
-	private List<Object> values(List<Shrinkable<Object>> shrinkables) {
-		return shrinkables.stream().map(Shrinkable::value).collect(Collectors.toList());
 	}
 
 	private RandomizedShrinkablesGenerator createGenerator(Random random, String methodName) {

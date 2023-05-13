@@ -1,14 +1,14 @@
 package net.jqwik.engine.properties;
 
 import java.util.*;
-import java.util.stream.*;
 
 import net.jqwik.api.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.support.*;
 
 import static java.lang.Math.*;
 
-public class EdgeCasesGenerator implements Iterator<List<Shrinkable<Object>>> {
+public class EdgeCasesGenerator implements Iterator<ParameterSet<Shrinkable<Object>>> {
 
 	// Caveat: Always make sure that the number is greater than 1.
 	// Otherwise only edge cases will be generated
@@ -20,24 +20,20 @@ public class EdgeCasesGenerator implements Iterator<List<Shrinkable<Object>>> {
 		);
 	}
 
-	private final List<EdgeCases<Object>> edgeCases;
-	private final Iterator<List<Shrinkable<Object>>> iterator;
+	private final ParameterSet<EdgeCases<Object>> edgeCases;
+	private final Iterator<ParameterSet<Shrinkable<Object>>> iterator;
 
-	EdgeCasesGenerator(List<EdgeCases<Object>> edgeCases) {
+	EdgeCasesGenerator(ParameterSet<EdgeCases<Object>> edgeCases) {
 		this.edgeCases = edgeCases;
 		this.iterator = createIterator();
 	}
 
-	private Iterator<List<Shrinkable<Object>>> createIterator() {
+	private Iterator<ParameterSet<Shrinkable<Object>>> createIterator() {
 		if (this.edgeCases.isEmpty()) {
 			return Collections.emptyIterator();
 		}
-		List<Iterable<Shrinkable<Object>>> iterables =
-			edgeCases
-				.stream()
-				.map(edge -> (Iterable<Shrinkable<Object>>) edge)
-				.collect(Collectors.toList());
-		return Combinatorics.combine(iterables);
+		ParameterSet<Iterable<Shrinkable<Object>>> iterables = edgeCases.map(edge -> edge);
+		return Combinatorics.combineParameters(iterables);
 	}
 
 	@Override
@@ -46,7 +42,7 @@ public class EdgeCasesGenerator implements Iterator<List<Shrinkable<Object>>> {
 	}
 
 	@Override
-	public List<Shrinkable<Object>> next() {
+	public ParameterSet<Shrinkable<Object>> next() {
 		return iterator.next();
 	}
 }

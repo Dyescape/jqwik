@@ -1,12 +1,9 @@
 package net.jqwik.api.lifecycle;
 
-import java.util.*;
+import net.jqwik.api.parameters.ParameterSet;
+import org.apiguardian.api.API;
 
-import org.apiguardian.api.*;
-
-import net.jqwik.api.*;
-
-import static org.apiguardian.api.API.Status.*;
+import static org.apiguardian.api.API.Status.MAINTAINED;
 
 /**
  * Experimental feature. Not ready for public usage yet.
@@ -14,5 +11,5 @@ import static org.apiguardian.api.API.Status.*;
 @API(status = MAINTAINED, since = "1.4.0")
 public interface TryExecutor {
 
-	TryExecutionResult execute(List<Object> parameters);
+    TryExecutionResult execute(ParameterSet<Object> parameters);
 }

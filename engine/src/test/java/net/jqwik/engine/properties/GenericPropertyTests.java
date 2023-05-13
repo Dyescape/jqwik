@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.*;
 import java.util.function.*;
 import java.util.stream.*;
 
+import net.jqwik.api.parameters.ParameterSet;
 import org.opentest4j.*;
 
 import net.jqwik.*;
@@ -27,7 +28,6 @@ class GenericPropertyTests {
 
 	@Group
 	class OneParameter {
-
 		private final Function<List<Object>, Boolean> exactlyOneInteger = args -> args.size() == 1 && args.get(0) instanceof Integer;
 
 		@Example
@@ -100,7 +100,7 @@ class GenericPropertyTests {
 			assertThat(result.throwable()).isPresent();
 
 			assertThat(result.falsifiedParameters()).isPresent();
-			assertThat(result.falsifiedParameters().get()).containsExactly(failingTry);
+			assertThat(result.falsifiedParameters().get().getDirect()).containsExactly(failingTry);
 
 			assertThat(result.originalSample()).isPresent();
 			assertThat(result.shrunkSample()).isEmpty();
@@ -121,7 +121,7 @@ class GenericPropertyTests {
 			PropertyCheckResult result = property.check(TestHelper.reporter(), new Reporting[0]);
 
 			assertThat(forAllFunction.countCalls()).isEqualTo(failingTry); // If shrunk number would be higher
-			assertThat(result.falsifiedParameters().get()).containsExactly(failingTry);
+			assertThat(result.falsifiedParameters().get().getDirect()).containsExactly(failingTry);
 
 			assertThat(result.originalSample()).isPresent();
 			assertThat(result.shrunkSample()).isEmpty();
@@ -145,10 +145,10 @@ class GenericPropertyTests {
 
 			assertThat(forAllSpy.countCalls()).isEqualTo(5);
 			assertThat(result.falsifiedParameters()).isPresent();
-			assertThat(result.falsifiedParameters().get()).containsExactly(5);
+			assertThat(result.falsifiedParameters().get().getDirect()).containsExactly(5);
 
 			assertThat(result.shrunkSample()).isNotPresent();
-			assertThat(result.originalSample().get().parameters()).containsExactly(5);
+			assertThat(result.originalSample().get().parameters().getDirect()).containsExactly(5);
 		}
 
 		@Example
@@ -174,7 +174,7 @@ class GenericPropertyTests {
 			assertThat(result.countChecks()).isEqualTo(1);
 
 			assertThat(result.falsifiedParameters()).isPresent();
-			assertThat(result.falsifiedParameters().get()).containsExactly(1);
+			assertThat(result.falsifiedParameters().get().getDirect()).containsExactly(1);
 
 			assertThat(result.throwable()).isPresent();
 			assertThat(result.throwable().get()).isSameAs(assertionError);
@@ -206,7 +206,7 @@ class GenericPropertyTests {
 			assertThat(result.countChecks()).isEqualTo(1);
 
 			assertThat(result.falsifiedParameters()).isPresent();
-			assertThat(result.falsifiedParameters().get()).containsExactly(1);
+			assertThat(result.falsifiedParameters().get().getDirect()).containsExactly(1);
 
 			assertThat(result.throwable()).isPresent();
 			assertThat(result.throwable().get()).isSameAs(runtimeException);
@@ -314,7 +314,7 @@ class GenericPropertyTests {
 			assertThat(result.throwable().get()).isSameAs(thrownException);
 
 			assertThat(result.falsifiedParameters()).isPresent();
-			assertThat(result.falsifiedParameters().get()).containsExactly(erroneousTry);
+			assertThat(result.falsifiedParameters().get().getDirect()).containsExactly(erroneousTry);
 		}
 
 		@Example
@@ -332,7 +332,7 @@ class GenericPropertyTests {
 			assertThat(result.checkStatus()).isEqualTo(PropertyCheckResult.CheckStatus.FAILED);
 
 			assertThat(result.falsifiedParameters()).isPresent();
-			assertThat(result.falsifiedParameters().get()).containsExactly(5);
+			assertThat(result.falsifiedParameters().get().getDirect()).containsExactly(5);
 
 			assertThat(result.originalSample()).isPresent();
 			// If 5 is generated directly no shrinking has taken place
@@ -348,7 +348,7 @@ class GenericPropertyTests {
 		@Example
 		void checkPropertyWithoutForAllParametersAreAlsoTriedSeveralTimes() {
 			CheckedFunction forAllFunction = args -> {
-				assertThat(args).isEmpty();
+				assertThat(args.isEmpty()).isTrue();
 				return true;
 			};
 
@@ -367,7 +367,7 @@ class GenericPropertyTests {
 		@Example
 		void evenIfItFails() {
 			CheckedFunction forAllFunction = args -> {
-				assertThat(args).isEmpty();
+				assertThat(args.isEmpty()).isTrue();
 				return false;
 			};
 
@@ -383,13 +383,13 @@ class GenericPropertyTests {
 			assertThat(result.throwable()).isPresent();
 
 			assertThat(result.falsifiedParameters()).isPresent();
-			assertThat(result.falsifiedParameters().get()).isEmpty();
+			assertThat(result.falsifiedParameters().get().getDirect()).isEmpty();
 		}
 
 		@Example
 		void evenIfItThrowsException() {
 			CheckedFunction forAllFunction = args -> {
-				assertThat(args).isEmpty();
+				assertThat(args.isEmpty()).isTrue();
 				throw new RuntimeException();
 			};
 
@@ -407,7 +407,7 @@ class GenericPropertyTests {
 			assertThat(result.throwable().get()).isInstanceOf(RuntimeException.class);
 
 			assertThat(result.falsifiedParameters()).isPresent();
-			assertThat(result.falsifiedParameters().get()).isEmpty();
+			assertThat(result.falsifiedParameters().get().getDirect()).isEmpty();
 		}
 
 		@Example
@@ -439,7 +439,7 @@ class GenericPropertyTests {
 		@Example
 		void twoParametersSatisfied() {
 			CheckedFunction forAllFunction = args -> {
-				assertThat(args).size().isEqualTo(2);
+				assertThat(args.getDirect()).size().isEqualTo(2);
 				assertThat(args.get(0)).isInstanceOf(Integer.class);
 				assertThat(args.get(1)).isInstanceOf(Integer.class);
 				return true;
@@ -470,7 +470,7 @@ class GenericPropertyTests {
 			int failingTry = 5;
 
 			CheckedFunction forAllFunction = args -> {
-				assertThat(args).size().isEqualTo(4);
+				assertThat(args.getDirect()).size().isEqualTo(4);
 				return ((int) args.get(0)) < failingTry;
 			};
 
@@ -493,9 +493,9 @@ class GenericPropertyTests {
 			assertThat(result.throwable()).isPresent();
 
 			assertThat(result.falsifiedParameters()).isPresent();
-			assertThat(result.falsifiedParameters().get()).containsExactly(failingTry, 1, 1, 1);
+			assertThat(result.falsifiedParameters().get().getDirect()).containsExactly(failingTry, 1, 1, 1);
 			assertThat(result.originalSample()).isPresent();
-			assertThat(result.originalSample().get().shrinkables()).hasSize(4);
+			assertThat(result.originalSample().get().shrinkables().getDirect()).hasSize(4);
 		}
 
 	}
@@ -518,12 +518,14 @@ class GenericPropertyTests {
 			}
 
 			@Override
-			public List<Shrinkable<Object>> next(TryLifecycleContext context) {
-				return generators
-					.stream()
-					.map(generator -> generator.next(random))
-					.peek(ignore -> index++)
-					.collect(Collectors.toList());
+			public ParameterSet<Shrinkable<Object>> next(TryLifecycleContext context) {
+				List<Shrinkable<Object>> direct = generators
+						.stream()
+						.map(generator -> generator.next(random))
+						.peek(ignore -> index++)
+						.collect(Collectors.toList());
+
+				return ParameterSet.direct(direct);
 			}
 
 			@Override
@@ -556,8 +558,8 @@ class GenericPropertyTests {
 			}
 
 			@Override
-			public List<Shrinkable<Object>> next(TryLifecycleContext context) {
-				return new ArrayList<>();
+			public ParameterSet<Shrinkable<Object>> next(TryLifecycleContext context) {
+				return ParameterSet.empty();
 			}
 
 			@Override
@@ -593,10 +595,10 @@ class GenericPropertyTests {
 			}
 
 			@Override
-			public List<Shrinkable<Object>> next(TryLifecycleContext context) {
+			public ParameterSet<Shrinkable<Object>> next(TryLifecycleContext context) {
 				Shrinkable<Object> shrinkable = Shrinkable.unshrinkable(valuesIterator.next());
 				index++;
-				return Collections.singletonList(shrinkable);
+				return ParameterSet.direct(Collections.singletonList(shrinkable));
 			}
 
 			@Override

@@ -3,6 +3,7 @@ package net.jqwik.testing;
 import java.util.*;
 import java.util.function.*;
 
+import net.jqwik.api.parameters.ParameterSet;
 import org.apiguardian.api.*;
 
 import net.jqwik.api.lifecycle.*;
@@ -14,9 +15,9 @@ import static org.assertj.core.api.Assertions.*;
 public abstract class ShrinkToChecker implements Consumer<PropertyExecutionResult> {
 	@Override
 	public void accept(PropertyExecutionResult propertyExecutionResult) {
-		Optional<List<Object>> falsifiedSample = propertyExecutionResult.falsifiedParameters();
+		Optional<ParameterSet<Object>> falsifiedSample = propertyExecutionResult.falsifiedParameters();
 		assertThat(falsifiedSample).isPresent();
-		assertThat(falsifiedSample.get()).containsExactlyElementsOf(shrunkValues());
+		assertThat(falsifiedSample.get().getDirect()).containsExactlyElementsOf(shrunkValues());
 	}
 
 	public abstract Iterable<?> shrunkValues();

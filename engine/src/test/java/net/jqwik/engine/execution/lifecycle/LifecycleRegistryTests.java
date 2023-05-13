@@ -3,6 +3,7 @@ package net.jqwik.engine.execution.lifecycle;
 import java.lang.reflect.*;
 import java.util.*;
 
+import net.jqwik.api.parameters.ParameterSet;
 import org.junit.platform.engine.*;
 
 import net.jqwik.api.*;
@@ -159,8 +160,8 @@ class LifecycleRegistryTests {
 
 	static class ChangeFirstParamTo42 implements AroundTryHook {
 		@Override
-		public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) {
-			if (parameters.size() >= 1) {
+		public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) {
+			if (parameters.directSize() >= 1) {
 				parameters.set(0, 42);
 			}
 			return aTry.execute(parameters);
@@ -169,8 +170,8 @@ class LifecycleRegistryTests {
 
 	static class ChangeSecondParamToAAA implements AroundTryHook {
 		@Override
-		public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) {
-			if (parameters.size() >= 2) {
+		public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) {
+			if (parameters.directSize() >= 2) {
 				parameters.set(1, "AAA");
 			}
 			return aTry.execute(parameters);

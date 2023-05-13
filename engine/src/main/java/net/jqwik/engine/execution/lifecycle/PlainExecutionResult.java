@@ -4,6 +4,7 @@ import java.util.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.execution.*;
 
 public class PlainExecutionResult implements ExtendedPropertyExecutionResult {
@@ -41,7 +42,7 @@ public class PlainExecutionResult implements ExtendedPropertyExecutionResult {
 	}
 
 	@Override
-	public Optional<List<Object>> falsifiedParameters() {
+	public Optional<ParameterSet<Object>> falsifiedParameters() {
 		return Optional.empty();
 	}
 

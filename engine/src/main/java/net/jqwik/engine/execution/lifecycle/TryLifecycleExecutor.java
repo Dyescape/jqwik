@@ -1,10 +1,9 @@
 package net.jqwik.engine.execution.lifecycle;
 
-import java.util.*;
-
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 
 public interface TryLifecycleExecutor {
 
-	TryExecutionResult execute(TryLifecycleContext tryLifecycleContext, List<Object> parameters);
+	TryExecutionResult execute(TryLifecycleContext tryLifecycleContext, ParameterSet<Object> parameters);
 }

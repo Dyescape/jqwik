@@ -1,11 +1,10 @@
 package net.jqwik.engine.properties.shrinking;
 
-import java.math.*;
-import java.util.ArrayList;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
+import net.jqwik.api.parameters.ParameterSet;
 import org.mockito.*;
 
 import net.jqwik.api.*;
@@ -30,7 +29,9 @@ class PropertyShrinkerTests {
 	class NoShrinking {
 		@Example
 		void ifParametersAreUnshrinkableReturnOriginalValue() {
-			List<Shrinkable<Object>> unshrinkableParameters = asList(Shrinkable.unshrinkable(1), Shrinkable.unshrinkable("hello"));
+			ParameterSet<Shrinkable<Object>> unshrinkableParameters = ParameterSet.direct(
+					asList(Shrinkable.unshrinkable(1), Shrinkable.unshrinkable("hello"))
+			);
 			Throwable originalError = failAndCatch("original error");
 			FalsifiedSample originalSample = toFalsifiedSample(unshrinkableParameters, originalError);
 			PropertyShrinker shrinker = createShrinker(originalSample, ShrinkingMode.FULL);
@@ -45,7 +46,7 @@ class PropertyShrinkerTests {
 
 		@Example
 		void ifShrinkingIsOffReturnOriginalValue() {
-			List<Shrinkable<Object>> parameters = listOfOneStepShrinkables(5, 10);
+			ParameterSet<Shrinkable<Object>> parameters = parametersOfOneStepShrinkables(5, 10);
 			Throwable originalError = failAndCatch("original error");
 			FalsifiedSample originalSample = toFalsifiedSample(parameters, originalError);
 			PropertyShrinker shrinker = createShrinker(originalSample, ShrinkingMode.OFF);
@@ -60,12 +61,12 @@ class PropertyShrinkerTests {
 
 		@Example
 		void ifNothingCanBeShrunkReturnOriginalValue() {
-			List<Shrinkable<Object>> parameters = listOfOneStepShrinkables(10);
+			ParameterSet<Shrinkable<Object>> parameters = parametersOfOneStepShrinkables(10);
 			Throwable originalError = failAndCatch("original error");
 			FalsifiedSample originalSample = toFalsifiedSample(parameters, originalError);
 			PropertyShrinker shrinker = createShrinker(originalSample, ShrinkingMode.FULL);
 
-			Falsifier<List<Object>> falsifier = paramFalsifier((Integer i) -> i <= 9);
+			Falsifier<ParameterSet<Object>> falsifier = paramFalsifier((Integer i) -> i <= 9);
 			ShrunkFalsifiedSample sample = shrinker.shrink(falsifier);
 
 			assertThat(originalSample.equals(sample)).isTrue();
@@ -78,11 +79,13 @@ class PropertyShrinkerTests {
 		@Example
 		void ignoreShrinkingSuggestionsWithShrinkingDistanceAboveCurrentBest() {
 			ShrinkToLarger shrinkableToLarger = new ShrinkToLarger(10);
-			List<Shrinkable<Object>> parameters = asList(shrinkableToLarger.asGeneric());
+			ParameterSet<Shrinkable<Object>> parameters = ParameterSet.direct(
+					asList(shrinkableToLarger.asGeneric())
+			);
 			FalsifiedSample originalSample = toFalsifiedSample(parameters, null);
 			PropertyShrinker shrinker = createShrinker(originalSample, ShrinkingMode.FULL);
 
-			Falsifier<List<Object>> falsifier = ignore -> TryExecutionResult.falsified(null);
+			Falsifier<ParameterSet<Object>> falsifier = ignore -> TryExecutionResult.falsified(null);
 			ShrunkFalsifiedSample sample = shrinker.shrink(falsifier);
 
 			assertThat(originalSample.equals(sample)).isTrue();
@@ -99,14 +102,14 @@ class PropertyShrinkerTests {
 
 		@Example
 		void stepByStep() {
-			List<Shrinkable<Object>> shrinkables = listOfOneStepShrinkables(10);
+			ParameterSet<Shrinkable<Object>> shrinkables = parametersOfOneStepShrinkables(10);
 
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.FULL);
 
-			Falsifier<List<Object>> falsifier = paramFalsifier((Integer i) -> i <= 1);
+			Falsifier<ParameterSet<Object>> falsifier = paramFalsifier((Integer i) -> i <= 1);
 			ShrunkFalsifiedSample sample = shrinker.shrink(falsifier);
 
-			assertThat(sample.parameters()).isEqualTo(asList(2));
+			assertThat(sample.parameters().getDirect()).isEqualTo(asList(2));
 			assertThat(sample.falsifyingError()).isNotPresent();
 			assertThat(sample.countShrinkingSteps()).isEqualTo(8);
 
@@ -116,32 +119,32 @@ class PropertyShrinkerTests {
 
 		@Example
 		void inOneStep() {
-			List<Shrinkable<Object>> shrinkables = listOfFullShrinkables(10);
+			ParameterSet<Shrinkable<Object>> shrinkables = listOfFullShrinkables(10);
 
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.FULL);
 
-			Falsifier<List<Object>> falsifier = paramFalsifier((Integer i) -> i <= 1);
+			Falsifier<ParameterSet<Object>> falsifier = paramFalsifier((Integer i) -> i <= 1);
 			ShrunkFalsifiedSample sample = shrinker.shrink(falsifier);
 
-			assertThat(sample.parameters()).isEqualTo(asList(2));
+			assertThat(sample.parameters().getDirect()).isEqualTo(asList(2));
 			assertThat(sample.falsifyingError()).isNotPresent();
 			assertThat(sample.countShrinkingSteps()).isEqualTo(1);
 		}
 
 		@Example
 		void stepByStepWithFilter() {
-			List<Shrinkable<Object>> shrinkables = listOfOneStepShrinkables(10);
+			ParameterSet<Shrinkable<Object>> shrinkables = parametersOfOneStepShrinkables(10);
 
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.FULL);
 
-			Falsifier<List<Object>> falsifier = paramFalsifier((Integer i) -> {
+			Falsifier<ParameterSet<Object>> falsifier = paramFalsifier((Integer i) -> {
 				Assume.that(i % 2 == 0);
 				return i <= 1;
 			});
 
 			ShrunkFalsifiedSample sample = shrinker.shrink(falsifier);
 
-			assertThat(sample.parameters()).isEqualTo(asList(2));
+			assertThat(sample.parameters().getDirect()).isEqualTo(asList(2));
 			assertThat(sample.falsifyingError()).isNotPresent();
 			assertThat(sample.countShrinkingSteps()).isEqualTo(4);
 
@@ -155,7 +158,9 @@ class PropertyShrinkerTests {
 		@Example
 		@SuppressLogging
 		void withBoundedShrinkingBreakOffAfter1Second() {
-			List<Shrinkable<Object>> shrinkables = asList(new ShrinkableTypesForTest.SlowShrinkable(20).asGeneric());
+			ParameterSet<Shrinkable<Object>> shrinkables = ParameterSet.direct(
+					asList(new ShrinkableTypesForTest.SlowShrinkable(20).asGeneric())
+			);
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.BOUNDED, 1);
 
 			ShrunkFalsifiedSample sample = shrinker.shrink(alwaysFalsify());
@@ -169,7 +174,9 @@ class PropertyShrinkerTests {
 		@Example
 		@SuppressLogging
 		void currentTestDescriptorIsAvailableInBoundedShrinking() {
-			List<Shrinkable<Object>> shrinkables = asList(new ShrinkableTypesForTest.ShrinkableUsingCurrentTestDescriptor(20).asGeneric());
+			ParameterSet<Shrinkable<Object>> shrinkables = ParameterSet.direct(
+					asList(new ShrinkableTypesForTest.ShrinkableUsingCurrentTestDescriptor(20).asGeneric())
+			);
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.BOUNDED, 10);
 
 			ShrunkFalsifiedSample sample = shrinker.shrink(alwaysFalsify());
@@ -179,25 +186,29 @@ class PropertyShrinkerTests {
 
 		@Example
 		void withUnboundedShrinkingDoNotBreakOff() {
-			List<Shrinkable<Object>> shrinkables = asList(new ShrinkableTypesForTest.SlowShrinkable(10).asGeneric());
+			ParameterSet<Shrinkable<Object>> shrinkables = ParameterSet.direct(
+					asList(new ShrinkableTypesForTest.SlowShrinkable(10).asGeneric())
+			);
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.FULL);
 
 			ShrunkFalsifiedSample sample = shrinker.shrink(alwaysFalsify());
 
-			assertThat(sample.parameters()).isEqualTo(asList(0));
+			assertThat(sample.parameters().getDirect()).isEqualTo(asList(0));
 		}
 
 		@Example
 		void allowShrinkingWithSameDistance() {
 			ShrinkWithFixedDistance shrinkableToLarger = new ShrinkWithFixedDistance(10);
-			List<Shrinkable<Object>> parameters = asList(shrinkableToLarger.asGeneric());
+			ParameterSet<Shrinkable<Object>> parameters = ParameterSet.direct(
+					asList(shrinkableToLarger.asGeneric())
+			);
 			FalsifiedSample originalSample = toFalsifiedSample(parameters, null);
 			PropertyShrinker shrinker = createShrinker(originalSample, ShrinkingMode.FULL);
 
-			Falsifier<List<Object>> falsifier = ignore -> TryExecutionResult.falsified(null);
+			Falsifier<ParameterSet<Object>> falsifier = ignore -> TryExecutionResult.falsified(null);
 			ShrunkFalsifiedSample sample = shrinker.shrink(falsifier);
 
-			assertThat(sample.parameters()).isEqualTo(asList(0));
+			assertThat(sample.parameters().getDirect()).isEqualTo(asList(0));
 			assertThat(sample.countShrinkingSteps()).isEqualTo(10);
 
 			assertThat(shrinker.shrinkingSequence()).hasSize(10);
@@ -211,20 +222,20 @@ class PropertyShrinkerTests {
 	class SeveralParameters {
 		@Example
 		void shrinkAllParametersOneAfterTheOther() {
-			List<Shrinkable<Object>> shrinkables = listOfOneStepShrinkables(5, 10);
+			ParameterSet<Shrinkable<Object>> shrinkables = parametersOfOneStepShrinkables(5, 10);
 
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.FULL);
 
-			TestingFalsifier<List<Object>> falsifier = paramFalsifier((Integer integer1, Integer integer2) -> {
+			TestingFalsifier<ParameterSet<Object>> falsifier = paramFalsifier((Integer integer1, Integer integer2) -> {
 				if (integer1 == 0) return true;
 				return integer2 <= 1;
 			});
 			ShrunkFalsifiedSample sample = shrinker.shrink(falsifier);
 
-			assertThat(sample.parameters()).isEqualTo(asList(1, 2));
+			assertThat(sample.parameters().getDirect()).isEqualTo(asList(1, 2));
 			assertThat(sample.falsifyingError()).isNotPresent();
 			assertThat(sample.countShrinkingSteps()).isGreaterThan(0);
-			assertThat(createValues(sample)).containsExactly(1, 2);
+			assertThat(sample.shrinkables().map(Shrinkable::value).getDirect()).containsExactly(1, 2);
 
 			int sequenceSize = shrinker.shrinkingSequence().size();
 			assertThat(sequenceSize).isGreaterThan(0);
@@ -234,57 +245,59 @@ class PropertyShrinkerTests {
 
 		@Example
 		void goThroughShrinkingCycleAsOftenAsNeeded() {
-			List<Shrinkable<Object>> shrinkables = listOfOneStepShrinkables(10, 10);
+			ParameterSet<Shrinkable<Object>> shrinkables = parametersOfOneStepShrinkables(10, 10);
 
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.FULL);
 
-			TestingFalsifier<List<Object>> falsifier = paramFalsifier((Integer i1, Integer i2) -> Math.abs(i2 - i1) > 1);
+			TestingFalsifier<ParameterSet<Object>> falsifier = paramFalsifier((Integer i1, Integer i2) -> Math.abs(i2 - i1) > 1);
 			ShrunkFalsifiedSample sample = shrinker.shrink(falsifier);
 
-			assertThat(sample.parameters()).isEqualTo(asList(0, 0));
-			assertThat(createValues(sample)).containsExactly(0, 0);
+			assertThat(sample.parameters().getDirect()).isEqualTo(asList(0, 0));
+			assertThat(sample.shrinkables().map(Shrinkable::value).all()).containsExactly(0, 0);
 			assertThat(sample.countShrinkingSteps()).isGreaterThan(0);
 		}
 
 		@Example
 		void falsifyingErrorComesFromActualShrunkSample() {
-			List<Shrinkable<Object>> shrinkables = listOfOneStepShrinkables(5, 10);
+			ParameterSet<Shrinkable<Object>> shrinkables = parametersOfOneStepShrinkables(5, 10);
 
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, failAndCatch("original")), ShrinkingMode.FULL);
 
-			TestingFalsifier<List<Object>> falsifier = paramFalsifier((Integer integer1, Integer integer2) -> {
+			TestingFalsifier<ParameterSet<Object>> falsifier = paramFalsifier((Integer integer1, Integer integer2) -> {
 				if (integer1 == 0) return true;
 				if (integer2 <= 1) return true;
 				throw failAndCatch("shrinking");
 			});
 			ShrunkFalsifiedSample sample = shrinker.shrink(falsifier);
 
-			assertThat(sample.parameters()).isEqualTo(asList(1, 2));
+			assertThat(sample.parameters().getDirect()).isEqualTo(asList(1, 2));
 			assertThat(sample.falsifyingError()).isPresent();
 			assertThat(sample.falsifyingError().get()).hasMessage("shrinking");
 		}
 
 		@Example
 		void shrunkSampleParametersAreTheRealOnes() {
-			List<Shrinkable<Object>> shrinkables = asList(
-				new ShrinkableList<>(asList(new FullShrinkable(42)), 1, 5).asGeneric(),
-				new ShrinkableList<>(asList(new FullShrinkable(17)), 0, 5).asGeneric()
+			ParameterSet<Shrinkable<Object>> shrinkables = ParameterSet.direct(
+					asList(
+							new ShrinkableList<>(asList(new FullShrinkable(42)), 1, 5).asGeneric(),
+							new ShrinkableList<>(asList(new FullShrinkable(17)), 0, 5).asGeneric()
+					)
 			);
 
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.FULL);
 
-			TestingFalsifier<List<Object>> falsifier = paramFalsifier((List<Integer> list1, List<Integer> list2) -> {
+			TestingFalsifier<ParameterSet<Object>> falsifier = paramFalsifier((List<Integer> list1, List<Integer> list2) -> {
 				list1.add(101);
 				list2.add(202);
 				return false;
 			});
 			ShrunkFalsifiedSample sample = shrinker.shrink(falsifier);
 
-			assertThat(sample.parameters()).containsExactly(
+			assertThat(sample.parameters().getDirect()).containsExactly(
 				asList(0, 101),
 				asList(202)
 			);
-			assertThat(createValues(sample)).containsExactly(
+			assertThat(sample.shrinkables().map(Shrinkable::value).all()).containsExactly(
 				asList(0),
 				asList()
 			);
@@ -292,17 +305,17 @@ class PropertyShrinkerTests {
 
 		@Example
 		void resultSampleConsistsOfActualUsedObjects_notOfValuesGeneratedByShrinkable() {
-			List<Shrinkable<Object>> shrinkables = listOfOneStepShrinkables(5, 10);
+			ParameterSet<Shrinkable<Object>> shrinkables = parametersOfOneStepShrinkables(5, 10);
 
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.FULL);
 
-			TestingFalsifier<List<Object>> falsifier = params -> {
-				params.add(42);
+			TestingFalsifier<ParameterSet<Object>> falsifier = params -> {
+				params.getDirect().add(42);
 				if (((int) params.get(0)) == 0) return true;
 				return ((int) params.get(1)) <= 1;
 			};
 			ShrunkFalsifiedSample sample = shrinker.shrink(falsifier);
-			assertThat(sample.parameters()).isEqualTo(asList(1, 2, 42));
+			assertThat(sample.parameters().getDirect()).isEqualTo(asList(1, 2, 42));
 		}
 	}
 
@@ -311,7 +324,7 @@ class PropertyShrinkerTests {
 
 		@Example
 		void correctSampleIsReported() {
-			List<Shrinkable<Object>> shrinkables = listOfOneStepShrinkables(1);
+			ParameterSet<Shrinkable<Object>> shrinkables = parametersOfOneStepShrinkables(1);
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.FULL);
 			shrinker.shrink(ignore -> TryExecutionResult.falsified(null));
 
@@ -319,12 +332,12 @@ class PropertyShrinkerTests {
 			verify(falsifiedSampleReporter, times(1)).accept(sampleCaptor.capture());
 
 			FalsifiedSample sample = sampleCaptor.getValue();
-			assertThat(sample.parameters()).isEqualTo(asList(0));
+			assertThat(sample.parameters().getDirect()).isEqualTo(asList(0));
 		}
 
 		@Example
 		void allFalsifiedSamplesAreReported() {
-			List<Shrinkable<Object>> shrinkables = listOfOneStepShrinkables(5, 10);
+			ParameterSet<Shrinkable<Object>> shrinkables = parametersOfOneStepShrinkables(5, 10);
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.FULL);
 			shrinker.shrink(ignore -> TryExecutionResult.falsified(null));
 
@@ -338,12 +351,12 @@ class PropertyShrinkerTests {
 
 		@Example
 		void differentErrorTypeDoesNotCountAsSameError() {
-			List<Shrinkable<Object>> shrinkables = listOfOneStepShrinkables(50);
+			ParameterSet<Shrinkable<Object>> shrinkables = parametersOfOneStepShrinkables(50);
 
 			AssertionError originalError = failAndCatch("original error");
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, originalError), ShrinkingMode.FULL);
 
-			TestingFalsifier<List<Object>> falsifier = paramFalsifier((Integer integer) -> {
+			TestingFalsifier<ParameterSet<Object>> falsifier = paramFalsifier((Integer integer) -> {
 				if (integer <= 10) return true;
 				if (integer % 2 == 0) {
 					throw failAndCatch("shrinking");
@@ -354,17 +367,17 @@ class PropertyShrinkerTests {
 
 			ShrunkFalsifiedSample sample = shrinker.shrink(falsifier);
 
-			assertThat(sample.parameters()).isEqualTo(asList(12));
+			assertThat(sample.parameters().getDirect()).isEqualTo(asList(12));
 			assertThat(sample.falsifyingError().get()).hasMessage("shrinking");
 		}
 
 		@Example
 		void differentErrorStackTraceDoesNotCountAsSameError() {
-			List<Shrinkable<Object>> shrinkables = listOfOneStepShrinkables(50);
+			ParameterSet<Shrinkable<Object>> shrinkables = parametersOfOneStepShrinkables(50);
 			AssertionError originalError = failAndCatch("original error");
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, originalError), ShrinkingMode.FULL);
 
-			TestingFalsifier<List<Object>> falsifier = paramFalsifier((Integer integer) -> {
+			TestingFalsifier<ParameterSet<Object>> falsifier = paramFalsifier((Integer integer) -> {
 				if (integer <= 10) return true;
 				if (integer % 2 == 0) {
 					throw failAndCatch("shrinking");
@@ -375,7 +388,7 @@ class PropertyShrinkerTests {
 
 			ShrunkFalsifiedSample sample = shrinker.shrink(falsifier);
 
-			assertThat(sample.parameters()).isEqualTo(asList(12));
+			assertThat(sample.parameters().getDirect()).isEqualTo(asList(12));
 			assertThat(sample.falsifyingError().get()).hasMessage("shrinking");
 		}
 	}
@@ -385,18 +398,18 @@ class PropertyShrinkerTests {
 
 		@Example
 		void shrinkTwoParametersTogether() {
-			List<Shrinkable<Object>> shrinkables = listOfOneStepShrinkables(10, 10);
+			ParameterSet<Shrinkable<Object>> shrinkables = parametersOfOneStepShrinkables(10, 10);
 
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.FULL);
 
-			TestingFalsifier<List<Object>> falsifier = paramFalsifier((Integer int1, Integer int2) -> {
+			TestingFalsifier<ParameterSet<Object>> falsifier = paramFalsifier((Integer int1, Integer int2) -> {
 				return int1 < 7 || int1.compareTo(int2) != 0;
 			});
 			ShrunkFalsifiedSample sample = shrinker.shrink(falsifier);
 
-			assertThat(sample.parameters()).isEqualTo(asList(7, 7));
+			assertThat(sample.parameters().getDirect()).isEqualTo(asList(7, 7));
 			assertThat(sample.countShrinkingSteps()).isGreaterThan(0);
-			assertThat(createValues(sample)).containsExactly(7, 7);
+			assertThat(sample.shrinkables().map(Shrinkable::value).all()).containsExactly(7, 7);
 		}
 
 		@Property
@@ -406,11 +419,11 @@ class PropertyShrinkerTests {
 		) {
 			Assume.that(index1 != index2);
 
-			List<Shrinkable<Object>> shrinkables = listOfOneStepShrinkables(10, 10, 10, 10);
+			ParameterSet<Shrinkable<Object>> shrinkables = parametersOfOneStepShrinkables(10, 10, 10, 10);
 
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.FULL);
 
-			TestingFalsifier<List<Object>> falsifier = params -> {
+			TestingFalsifier<ParameterSet<Object>> falsifier = params -> {
 				int int1 = (int) params.get(index1);
 				int int2 = (int) params.get(index2);
 				return int1 < 7 || int1 != int2;
@@ -421,22 +434,22 @@ class PropertyShrinkerTests {
 			expectedList.set(index1, 7);
 			expectedList.set(index2, 7);
 
-			assertThat(sample.parameters()).isEqualTo(expectedList);
+			assertThat(sample.parameters().getDirect()).isEqualTo(expectedList);
 			assertThat(sample.countShrinkingSteps()).isGreaterThan(0);
 		}
 
 		@Example
 		void shrinkingPairSumShiftsTowardsRight() {
-			List<Shrinkable<Object>> shrinkables = listOfOneStepShrinkables(10, 10);
+			ParameterSet<Shrinkable<Object>> shrinkables = parametersOfOneStepShrinkables(10, 10);
 
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.FULL);
 
-			TestingFalsifier<List<Object>> falsifier = paramFalsifier((Integer int1, Integer int2) -> {
+			TestingFalsifier<ParameterSet<Object>> falsifier = paramFalsifier((Integer int1, Integer int2) -> {
 				return int1 + int2 < 20;
 			});
 			ShrunkFalsifiedSample sample = shrinker.shrink(falsifier);
 
-			assertThat(sample.parameters()).isEqualTo(asList(0, 20));
+			assertThat(sample.parameters().getDirect()).isEqualTo(asList(0, 20));
 			assertThat(sample.countShrinkingSteps()).isGreaterThan(0);
 		}
 
@@ -491,16 +504,18 @@ class PropertyShrinkerTests {
 		}
 	}
 
-	private List<Object> createValues(FalsifiedSample sample) {
-		return sample.shrinkables().stream().map(Shrinkable::value).collect(Collectors.toList());
+	private ParameterSet<Shrinkable<Object>> parametersOfOneStepShrinkables(int... args) {
+		List<Shrinkable<Object>> list = Arrays.stream(args)
+				.mapToObj(i -> new OneStepShrinkable(i).asGeneric()).collect(Collectors.toList());
+
+		return ParameterSet.direct(list);
 	}
 
-	private List<Shrinkable<Object>> listOfOneStepShrinkables(int... args) {
-		return Arrays.stream(args).mapToObj(i -> new OneStepShrinkable(i).asGeneric()).collect(Collectors.toList());
-	}
+	private ParameterSet<Shrinkable<Object>> listOfFullShrinkables(int... args) {
+		List<Shrinkable<Object>> list = Arrays.stream(args)
+				.mapToObj(i -> new FullShrinkable(i).asGeneric()).collect(Collectors.toList());
 
-	private List<Shrinkable<Object>> listOfFullShrinkables(int... args) {
-		return Arrays.stream(args).mapToObj(i -> new FullShrinkable(i).asGeneric()).collect(Collectors.toList());
+		return ParameterSet.direct(list);
 	}
 
 	private PropertyShrinker createShrinker(FalsifiedSample originalSample, ShrinkingMode shrinkingMode) {
@@ -517,13 +532,13 @@ class PropertyShrinkerTests {
 		);
 	}
 
-	private FalsifiedSample toFalsifiedSample(List<Shrinkable<Object>> shrinkables, Throwable originalError) {
-		List<Object> parameters = shrinkables.stream().map(Shrinkable::value).collect(Collectors.toList());
+	private FalsifiedSample toFalsifiedSample(ParameterSet<Shrinkable<Object>> shrinkables, Throwable originalError) {
+		ParameterSet<Object> parameters = shrinkables.map(Shrinkable::value);
 		return new FalsifiedSampleImpl(parameters, shrinkables, Optional.ofNullable(originalError), Collections.emptyList());
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> TestingFalsifier<List<Object>> paramFalsifier(Predicate<T> tFalsifier) {
+	private <T> TestingFalsifier<ParameterSet<Object>> paramFalsifier(Predicate<T> tFalsifier) {
 		return params -> {
 			T seq = (T) params.get(0);
 			return tFalsifier.test(seq);
@@ -531,7 +546,7 @@ class PropertyShrinkerTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T1, T2> TestingFalsifier<List<Object>> paramFalsifier(BiPredicate<T1, T2> t1t2Falsifier) {
+	private <T1, T2> TestingFalsifier<ParameterSet<Object>> paramFalsifier(BiPredicate<T1, T2> t1t2Falsifier) {
 		return params -> {
 			T1 t1 = (T1) params.get(0);
 			T2 t2 = (T2) params.get(1);

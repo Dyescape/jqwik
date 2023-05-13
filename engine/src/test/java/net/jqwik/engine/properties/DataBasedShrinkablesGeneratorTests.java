@@ -17,8 +17,8 @@ class DataBasedShrinkablesGeneratorTests {
 		Iterable<Tuple.Tuple2<String, Integer>> data = Table.of(Tuple.of("a", 1), Tuple.of("b", 2));
 		DataBasedShrinkablesGenerator shrinkablesGenerator = generator("stringAndInt", data);
 
-		assertThat(values(shrinkablesGenerator.next())).containsExactly("a", 1);
-		assertThat(values(shrinkablesGenerator.next())).containsExactly("b", 2);
+		assertThat(values(shrinkablesGenerator.next().getDirect())).containsExactly("a", 1);
+		assertThat(values(shrinkablesGenerator.next().getDirect())).containsExactly("b", 2);
 		assertThat(shrinkablesGenerator.hasNext()).isFalse();
 	}
 
@@ -31,9 +31,9 @@ class DataBasedShrinkablesGeneratorTests {
 		);
 		DataBasedShrinkablesGenerator shrinkablesGenerator = generator("stringAndInteger", data);
 
-		assertThat(values(shrinkablesGenerator.next())).containsExactly(null, Integer.valueOf(1));
-		assertThat(values(shrinkablesGenerator.next())).containsExactly("b", null);
-		assertThat(values(shrinkablesGenerator.next())).containsExactly(null, null);
+		assertThat(values(shrinkablesGenerator.next().getDirect())).containsExactly(null, Integer.valueOf(1));
+		assertThat(values(shrinkablesGenerator.next().getDirect())).containsExactly("b", null);
+		assertThat(values(shrinkablesGenerator.next().getDirect())).containsExactly(null, null);
 		assertThat(shrinkablesGenerator.hasNext()).isFalse();
 	}
 
@@ -56,7 +56,7 @@ class DataBasedShrinkablesGeneratorTests {
 
 		shrinkablesGenerator.reset();
 		assertThat(shrinkablesGenerator.hasNext()).isTrue();
-		assertThat(values(shrinkablesGenerator.next())).containsExactly("a", 1);
+		assertThat(values(shrinkablesGenerator.next().getDirect())).containsExactly("a", 1);
 	}
 
 	@Example

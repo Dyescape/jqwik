@@ -4,6 +4,7 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.*;
 
+import net.jqwik.api.parameters.ParameterSet;
 import org.junit.platform.commons.support.*;
 import org.junit.platform.engine.support.hierarchical.*;
 
@@ -64,7 +65,7 @@ public class BeforeTryMembersHook implements AroundTryHook {
 	}
 
 	@Override
-	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) {
+	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) {
 		beforeTry(context);
 		return aTry.execute(parameters);
 	}

@@ -1,10 +1,10 @@
 package net.jqwik.docs.lifecycle;
 
 import java.lang.annotation.*;
-import java.util.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
@@ -33,7 +33,7 @@ public @interface Timing {
 		}
 
 		@Override
-		public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) {
+		public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) {
 			long beforeTry = System.currentTimeMillis();
 			try {
 				return aTry.execute(parameters);

@@ -4,6 +4,7 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.*;
 
+import net.jqwik.api.parameters.ParameterSet;
 import org.apiguardian.api.*;
 
 import net.jqwik.api.*;
@@ -65,7 +66,7 @@ class FootnotesHook implements RegistrarHook {
 	static class FootnotesOutermost implements AroundTryHook {
 
 		@Override
-		public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) {
+		public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) {
 			TryExecutionResult executionResult = aTry.execute(parameters);
 			if (executionResult.isFalsified()) {
 				getFootnotesCollectorStore().get().evaluateOutermost();
@@ -88,7 +89,7 @@ class FootnotesHook implements RegistrarHook {
 	static class FootnotesInnermost implements AroundTryHook {
 
 		@Override
-		public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) {
+		public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) {
 			TryExecutionResult executionResult = aTry.execute(parameters);
 			if (executionResult.isFalsified()) {
 				getFootnotesCollectorStore().get().evaluateInnermost();

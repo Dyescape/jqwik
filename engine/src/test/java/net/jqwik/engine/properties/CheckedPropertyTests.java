@@ -3,6 +3,7 @@ package net.jqwik.engine.properties;
 import java.util.*;
 import java.util.function.*;
 
+import net.jqwik.api.parameters.ParameterSet;
 import org.assertj.core.api.*;
 import org.junit.platform.engine.reporting.*;
 import org.opentest4j.*;
@@ -89,10 +90,10 @@ class CheckedPropertyTests {
 	class PropertyChecking {
 		@Example
 		void intParametersSuccess() {
-			intOnlyExample("prop0", params -> params.size() == 0, SUCCESSFUL);
-			intOnlyExample("prop1", params -> params.size() == 1, SUCCESSFUL);
-			intOnlyExample("prop2", params -> params.size() == 2, SUCCESSFUL);
-			intOnlyExample("prop8", params -> params.size() == 8, SUCCESSFUL);
+			intOnlyExample("prop0", params -> params.directSize() == 0, SUCCESSFUL);
+			intOnlyExample("prop1", params -> params.directSize() == 1, SUCCESSFUL);
+			intOnlyExample("prop2", params -> params.directSize() == 2, SUCCESSFUL);
+			intOnlyExample("prop8", params -> params.directSize() == 8, SUCCESSFUL);
 		}
 
 		@Example
@@ -265,7 +266,7 @@ class CheckedPropertyTests {
 			Arbitrary<Integer> integers = Arbitraries.integers().between(1, 99);
 			GenerationInfo previousGenerationInfo = new GenerationInfo("41", 13);
 			// This is what's being generated from integers in the 13th attempt
-			List<Integer> expectedParameterValues = Arrays.asList(65, 77);
+			ParameterSet<Integer> expectedParameterValues = ParameterSet.direct(Arrays.asList(65, 77));
 
 			CheckedFunction checkSample = params -> {
 				Assertions.assertThat(params)

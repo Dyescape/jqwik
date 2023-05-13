@@ -5,10 +5,11 @@ import java.util.function.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 
 class ShrinkingAlgorithm {
 
-	private final Map<List<Object>, TryExecutionResult> falsificationCache = new LinkedHashMap<>();
+	private final Map<ParameterSet<Object>, TryExecutionResult> falsificationCache = new LinkedHashMap<>();
 	private final FalsifiedSample originalSample;
 	private final Consumer<FalsifiedSample> sampleShrunkConsumer;
 	private final Consumer<FalsifiedSample> shrinkAttemptConsumer;
@@ -24,7 +25,7 @@ class ShrinkingAlgorithm {
 		this.shrinkAttemptConsumer = shrinkAttemptConsumer;
 	}
 
-	FalsifiedSample shrink(final Falsifier<List<Object>> falsifier) {
+	FalsifiedSample shrink(final Falsifier<ParameterSet<Object>> falsifier) {
 		FalsifiedSample after = originalSample;
 		FalsifiedSample before;
 		do {
@@ -43,7 +44,7 @@ class ShrinkingAlgorithm {
 	}
 
 	private FalsifiedSample shrinkOneParameterAfterTheOther(
-		Falsifier<List<Object>> falsifier,
+		Falsifier<ParameterSet<Object>> falsifier,
 		FalsifiedSample sample,
 		Consumer<FalsifiedSample> sampleShrunkConsumer,
 		Consumer<FalsifiedSample> shrinkAttemptConsumer
@@ -53,7 +54,7 @@ class ShrinkingAlgorithm {
 	}
 
 	private FalsifiedSample shrinkParametersPairwise(
-		Falsifier<List<Object>> falsifier,
+		Falsifier<ParameterSet<Object>> falsifier,
 		FalsifiedSample sample,
 		Consumer<FalsifiedSample> sampleShrunkConsumer,
 		Consumer<FalsifiedSample> shrinkAttemptConsumer
@@ -62,7 +63,7 @@ class ShrinkingAlgorithm {
 	}
 
 	private FalsifiedSample shrinkAndGrow(
-		Falsifier<List<Object>> falsifier,
+		Falsifier<ParameterSet<Object>> falsifier,
 		FalsifiedSample sample,
 		Consumer<FalsifiedSample> sampleShrunkConsumer,
 		Consumer<FalsifiedSample> shrinkAttemptConsumer

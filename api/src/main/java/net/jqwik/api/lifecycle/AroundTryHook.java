@@ -1,10 +1,7 @@
 package net.jqwik.api.lifecycle;
 
-import java.util.*;
-
+import net.jqwik.api.parameters.ParameterSet;
 import org.apiguardian.api.*;
-
-import net.jqwik.api.*;
 
 import static org.apiguardian.api.API.Status.*;
 
@@ -36,7 +33,7 @@ public interface AroundTryHook extends LifecycleHook {
 	 * @param parameters the generated parameters for this try
 	 * @return result of running a single try
 	 */
-	TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) throws Throwable;
+	TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) throws Throwable;
 
 	/**
 	 * The higher the value, the closer to the actual property method.

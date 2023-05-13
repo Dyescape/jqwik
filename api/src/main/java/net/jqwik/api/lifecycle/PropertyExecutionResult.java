@@ -3,10 +3,9 @@ package net.jqwik.api.lifecycle;
 import javax.annotation.*;
 import java.util.*;
 
+import net.jqwik.api.parameters.ParameterSet;
 import org.apiguardian.api.*;
 import org.opentest4j.*;
-
-import net.jqwik.api.*;
 
 import static org.apiguardian.api.API.Status.*;
 
@@ -57,7 +56,7 @@ public interface PropertyExecutionResult {
 	 *
 	 * @return an optional list of parameters
 	 */
-	Optional<List<Object>> falsifiedParameters();
+	Optional<ParameterSet<Object>> falsifiedParameters();
 
 	/**
 	 * The final status of this property

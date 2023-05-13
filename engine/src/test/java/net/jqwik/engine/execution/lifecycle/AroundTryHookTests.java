@@ -5,6 +5,7 @@ import java.util.function.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.testing.*;
 
 import static org.assertj.core.api.Assertions.*;
@@ -105,7 +106,7 @@ class AroundTryHookTests {
 		public void accept(PropertyExecutionResult result) {
 			assertThat(result.countTries()).isEqualTo(3);
 			assertThat(result.falsifiedParameters()).isPresent();
-			assertThat(result.falsifiedParameters().get()).containsExactly(0);
+			assertThat(result.falsifiedParameters().get().getDirect()).containsExactly(0);
 		}
 	}
 
@@ -139,7 +140,7 @@ class AroundTryHookTests {
 
 class IncrementCount1 implements AroundTryHook {
 	@Override
-	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) throws Throwable {
+	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) throws Throwable {
 		AroundTryHookTests.count1++;
 		return aTry.execute(parameters);
 	}
@@ -147,7 +148,7 @@ class IncrementCount1 implements AroundTryHook {
 
 class IncrementCount2 implements AroundTryHook {
 	@Override
-	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) {
+	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) {
 		AroundTryHookTests.count2++;
 		return aTry.execute(parameters);
 	}
@@ -155,7 +156,7 @@ class IncrementCount2 implements AroundTryHook {
 
 class SwallowFailure implements AroundTryHook {
 	@Override
-	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) {
+	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) {
 		aTry.execute(parameters);
 		return TryExecutionResult.satisfied();
 	}
@@ -163,15 +164,15 @@ class SwallowFailure implements AroundTryHook {
 
 class ChangeParamTo1 implements AroundTryHook {
 	@Override
-	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) {
-		List<Object> changedParameters = Arrays.asList(1);
+	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) {
+		ParameterSet<Object> changedParameters = ParameterSet.direct(Arrays.asList(1));
 		return aTry.execute(changedParameters);
 	}
 }
 
 class FinishAfter5Tries implements AroundTryHook {
 	@Override
-	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) {
+	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) {
 		aTry.execute(parameters);
 		boolean finishEarly = AroundTryHookTests.finishEarlyTries >= 5;
 		return TryExecutionResult.satisfied(finishEarly);
@@ -183,7 +184,7 @@ class FalsifyThirdTry implements AroundTryHook {
 	Store<Integer> count = Store.create("count", Lifespan.PROPERTY, () -> 0);
 
 	@Override
-	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) throws Throwable {
+	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) throws Throwable {
 		count.update(i -> i + 1);
 		TryExecutionResult result = aTry.execute(parameters);
 		if (count.get() >= 3) {
@@ -198,7 +199,7 @@ class InvalidateEverySecondTry implements AroundTryHook {
 	Store<Integer> count = Store.create("count", Lifespan.PROPERTY, () -> 0);
 
 	@Override
-	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) {
+	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) {
 		count.update(i -> i + 1);
 		TryExecutionResult result = aTry.execute(parameters);
 		if (count.get() % 2 == 0) {
@@ -213,7 +214,7 @@ class InvalidateEverySecondTryWithAssumption implements AroundTryHook {
 	Store<Integer> count = Store.create("count", Lifespan.PROPERTY, () -> 0);
 
 	@Override
-	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) {
+	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) {
 		count.update(i -> i + 1);
 		TryExecutionResult result = aTry.execute(parameters);
 		if (count.get() % 2 == 0) {
@@ -226,7 +227,7 @@ class InvalidateEverySecondTryWithAssumption implements AroundTryHook {
 class CheckTryLifecycleContext implements AroundTryHook {
 
 	@Override
-	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) throws Throwable {
+	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) throws Throwable {
 		assertThat(context.label()).isEqualTo("checkTryLifecycleContextAttributes");
 		assertThat(context.containerClass()).isEqualTo(AroundTryHookTests.class);
 		assertThat(context.targetMethod().getName()).isEqualTo("checkTryLifecycleContextAttributes");

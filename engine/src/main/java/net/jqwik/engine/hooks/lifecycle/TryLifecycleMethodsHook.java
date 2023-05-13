@@ -3,6 +3,7 @@ package net.jqwik.engine.hooks.lifecycle;
 import java.lang.reflect.*;
 import java.util.*;
 
+import net.jqwik.api.parameters.ParameterSet;
 import org.junit.platform.engine.support.hierarchical.*;
 
 import net.jqwik.api.lifecycle.*;
@@ -51,7 +52,7 @@ public class TryLifecycleMethodsHook implements AroundTryHook {
 	}
 
 	@Override
-	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, List<Object> parameters) {
+	public TryExecutionResult aroundTry(TryLifecycleContext context, TryExecutor aTry, ParameterSet<Object> parameters) {
 		beforeTry(context);
 		try {
 			return aTry.execute(parameters);

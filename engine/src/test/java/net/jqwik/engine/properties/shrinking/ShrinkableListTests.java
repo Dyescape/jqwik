@@ -156,7 +156,7 @@ class ShrinkableListTests {
 
 			ShrunkFalsifiedSample sample = shrinkToSample(shrinkable, falsifier, failAndCatch("original reason"));
 
-			assertThat(sample.parameters()).containsExactly(asList(0, 0));
+			assertThat(sample.parameters().getDirect()).containsExactly(asList(0, 0));
 			assertThat(sample.falsifyingError()).isPresent();
 			assertThat(sample.falsifyingError()).containsInstanceOf(AssertionError.class);
 			assertThat(sample.falsifyingError().get()).hasMessage("my reason");

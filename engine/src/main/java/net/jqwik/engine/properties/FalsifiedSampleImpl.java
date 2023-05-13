@@ -2,20 +2,21 @@ package net.jqwik.engine.properties;
 
 import java.util.*;
 
-import net.jqwik.api.*;
+import net.jqwik.api.Shrinkable;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.api.support.*;
 
 public class FalsifiedSampleImpl implements FalsifiedSample {
 
-	private final List<Object> parameters;
-	private final List<Shrinkable<Object>> shrinkables;
+	private final ParameterSet<Object> parameters;
+	private final ParameterSet<Shrinkable<Object>> shrinkables;
 	private final Optional<Throwable> falsifyingError;
 	private final List<String> footnotes;
 
 	public FalsifiedSampleImpl(
-		List<Object> parameters,
-		List<Shrinkable<Object>> shrinkables,
+		ParameterSet<Object> parameters,
+		ParameterSet<Shrinkable<Object>> shrinkables,
 		Optional<Throwable> falsifyingError,
 		List<String> footnotes
 	) {
@@ -26,12 +27,12 @@ public class FalsifiedSampleImpl implements FalsifiedSample {
 	}
 
 	@Override
-	public List<Object> parameters() {
+	public ParameterSet<Object> parameters() {
 		return parameters;
 	}
 
 	@Override
-	public List<Shrinkable<Object>> shrinkables() {
+	public ParameterSet<Shrinkable<Object>> shrinkables() {
 		return shrinkables;
 	}
 

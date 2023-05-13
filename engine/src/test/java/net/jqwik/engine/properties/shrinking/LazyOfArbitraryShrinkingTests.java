@@ -5,6 +5,7 @@ import java.util.function.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.testing.*;
 
 import static org.assertj.core.api.Assertions.*;
@@ -160,7 +161,7 @@ class LazyOfArbitraryShrinkingTests {
 		private class ShrinkToSmallExpression implements Consumer<PropertyExecutionResult> {
 			@Override
 			public void accept(PropertyExecutionResult propertyExecutionResult) {
-				List<Object> actual = propertyExecutionResult.falsifiedParameters().get();
+				ParameterSet<Object> actual = propertyExecutionResult.falsifiedParameters().get();
 				// The best shrinker should shrink to just 5 nodes:
 				// ("/", 0, ("/", 0, 1)) or ("/", 0, ("+", 0, 0))
 				assertThat(countNodes(actual.get(0))).isEqualTo(5);

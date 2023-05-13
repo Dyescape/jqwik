@@ -5,6 +5,7 @@ import java.util.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.properties.*;
 import net.jqwik.engine.properties.shrinking.*;
 
@@ -18,8 +19,8 @@ class ParametersGeneratorForTests implements ParametersGenerator {
 	}
 
 	@Override
-	public List<Shrinkable<Object>> next(TryLifecycleContext context) {
-		return Arrays.asList(shrinkableInt(++index));
+	public ParameterSet<Shrinkable<Object>> next(TryLifecycleContext context) {
+		return ParameterSet.direct(Arrays.asList(shrinkableInt(++index)));
 	}
 
 	private Shrinkable<Object> shrinkableInt(int anInt) {

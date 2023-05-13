@@ -5,6 +5,7 @@ import java.util.logging.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.api.parameters.ParameterSet;
 
 public class AfterFailureParametersGenerator implements ParametersGenerator {
 
@@ -66,9 +67,9 @@ public class AfterFailureParametersGenerator implements ParametersGenerator {
 	}
 
 	@Override
-	public List<Shrinkable<Object>> next(TryLifecycleContext context) {
+	public ParameterSet<Shrinkable<Object>> next(TryLifecycleContext context) {
 		if (runWithPreviousSample) {
-			Optional<List<Shrinkable<Object>>> previousSample = generatePreviousSample(context);
+			Optional<ParameterSet<Shrinkable<Object>>> previousSample = generatePreviousSample(context);
 			runWithPreviousSample = false;
 			parametersGenerator.reset();
 			if (previousSample.isPresent()) {
@@ -95,7 +96,7 @@ public class AfterFailureParametersGenerator implements ParametersGenerator {
 		LOG.warning(message);
 	}
 
-	private Optional<List<Shrinkable<Object>>> generatePreviousSample(TryLifecycleContext context) {
+	private Optional<ParameterSet<Shrinkable<Object>>> generatePreviousSample(TryLifecycleContext context) {
 		return previousFailureGeneration.generateOn(parametersGenerator, context);
 	}
 
