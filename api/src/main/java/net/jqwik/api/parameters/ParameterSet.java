@@ -2,7 +2,7 @@ package net.jqwik.api.parameters;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.stream.*;
 
 public class ParameterSet<V> {
     private final List<V> direct;
@@ -10,16 +10,16 @@ public class ParameterSet<V> {
 
     public ParameterSet(List<V> direct, Map<String, V> dynamic) {
         this.direct = direct;
-        this.dynamic = new TreeMap<>(String::compareTo);
+        this.dynamic = new TreeMap<>();
         this.dynamic.putAll(dynamic);
     }
 
     public List<V> getDirect() {
-        return direct;
+        return new ArrayList<>(direct);
     }
 
     public SortedMap<String, V> getDynamic() {
-        return dynamic;
+        return new TreeMap<>(dynamic);
     }
 
     public int directSize() {
@@ -32,6 +32,14 @@ public class ParameterSet<V> {
 
     public void set(int index, V value) {
         direct.set(index, value);
+    }
+
+	public void add(V value) {
+		direct.add(value);
+	}
+
+    public boolean hasDynamic(String key) {
+        return dynamic.containsKey(key);
     }
 
     public V getDynamic(String key) {
@@ -109,7 +117,17 @@ public class ParameterSet<V> {
         return Objects.hash(getDirect(), getDynamic());
     }
 
-    public static <T> ParameterSet<T> empty() {
+	@Override
+	public String toString() {
+		String arguments = Stream.concat(
+			direct.stream().map(Object::toString),
+			dynamic.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue())
+		).collect(Collectors.joining(", "));
+
+		return "ParameterSet{" + arguments + "}";
+	}
+
+	public static <T> ParameterSet<T> empty() {
         return new ParameterSet<>(new ArrayList<>(), new HashMap<>());
     }
 

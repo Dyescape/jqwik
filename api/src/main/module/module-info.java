@@ -5,9 +5,11 @@ module net.jqwik.api {
 	exports net.jqwik.api.configurators;
 	exports net.jqwik.api.constraints;
 	exports net.jqwik.api.domains;
+	exports net.jqwik.api.dynamic;
 	exports net.jqwik.api.facades;
 	exports net.jqwik.api.footnotes;
 	exports net.jqwik.api.lifecycle;
+	exports net.jqwik.api.parameters;
 	exports net.jqwik.api.providers;
 	exports net.jqwik.api.sessions;
 	exports net.jqwik.api.stateful;
@@ -34,6 +36,7 @@ module net.jqwik.api {
 	uses net.jqwik.api.RandomGenerator.RandomGeneratorFacade;
 	uses net.jqwik.api.Shrinkable.ShrinkableFacade;
 	uses net.jqwik.api.domains.DomainContext.DomainContextFacade;
+	uses net.jqwik.api.dynamic.Dynamic.DynamicFacade;
 	uses net.jqwik.api.lifecycle.Store.StoreFacade;
 	uses net.jqwik.api.providers.TypeUsage.TypeUsageFacade;
 	uses net.jqwik.api.sessions.JqwikSession.JqwikSessionFacade;

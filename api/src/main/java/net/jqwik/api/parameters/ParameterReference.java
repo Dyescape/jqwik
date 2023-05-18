@@ -37,6 +37,10 @@ public interface ParameterReference {
             this.key = key;
         }
 
+        public String getKey() {
+            return key;
+        }
+
         @Override
         public <V> V from(ParameterSet<V> parameters) {
             return parameters.getDynamic(key);

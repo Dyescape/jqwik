@@ -25,7 +25,7 @@ class InvokePropertyMethodHookTests {
 		throw new RuntimeException("should not be thrown");
 	}
 
-	@Property(tries = 10)
+	@Property(tries = 10, generation = GenerationMode.RANDOMIZED)
 	@AddLifecycleHook(IncrementCount.class)
 	@PerProperty(AssertCount10.class)
 	void callHook10Times() {

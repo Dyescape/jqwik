@@ -12,10 +12,6 @@ public class TestsForReporting {
 	void succeeding() {
 	}
 
-	@Property(tries = 2)
-	void succeedingPropertyWithoutParameters() {
-	}
-
 	@Example
 	void succeedingWithForAll(@ForAll String aString) {
 	}

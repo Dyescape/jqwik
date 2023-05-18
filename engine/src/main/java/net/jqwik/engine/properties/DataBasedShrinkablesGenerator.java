@@ -1,24 +1,34 @@
 package net.jqwik.engine.properties;
 
-import java.util.*;
-import java.util.stream.*;
-
-import net.jqwik.api.*;
+import net.jqwik.api.Arbitrary;
+import net.jqwik.api.JqwikException;
+import net.jqwik.api.Shrinkable;
+import net.jqwik.api.Tuple;
 import net.jqwik.api.parameters.ParameterSet;
-import net.jqwik.api.providers.*;
-import net.jqwik.engine.support.*;
-import net.jqwik.engine.support.types.*;
+import net.jqwik.api.providers.TypeUsage;
+import net.jqwik.engine.execution.DynamicInfo;
+import net.jqwik.engine.execution.GenerationInfo;
+import net.jqwik.engine.support.JqwikStringSupport;
+import net.jqwik.engine.support.MethodParameter;
+import net.jqwik.engine.support.types.TypeUsageImpl;
+
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class DataBasedShrinkablesGenerator implements ForAllParametersGenerator {
 
 	private final List<MethodParameter> forAllParameters;
 	private final Iterable<? extends Tuple> data;
-	private Iterator<? extends Tuple> iterator;
+	private final Iterator<? extends Tuple> iterator;
+	private int baseIndex = -1;
 
 	public DataBasedShrinkablesGenerator(List<MethodParameter> forAllParameters, Iterable<? extends Tuple> data) {
 		this.forAllParameters = forAllParameters;
 		this.data = data;
-		this.reset();
+		this.iterator = data.iterator();
 	}
 
 	@Override
@@ -28,7 +38,37 @@ public class DataBasedShrinkablesGenerator implements ForAllParametersGenerator 
 
 	@Override
 	public ParameterSet<Shrinkable<Object>> next() {
-		Tuple tuple = iterator.next();
+		baseIndex++;
+
+		return transform(iterator.next());
+	}
+
+	@Override
+	public ParameterSet<Shrinkable<Object>> peek(GenerationInfo info) {
+		if (!info.dynamics().isEmpty()) {
+			throw new IllegalStateException();
+		}
+
+		Iterator<? extends Tuple> iterator = data.iterator();
+
+		for (int i = 0; i < info.baseGenerationIndex(); i++) {
+			iterator.next();
+		}
+
+		return transform(iterator.next());
+	}
+
+	@Override
+	public int baseGenerationIndex() {
+		return baseIndex;
+	}
+
+	@Override
+	public Map<String, Integer> dynamicProgress() {
+		return Collections.emptyMap();
+	}
+
+	private ParameterSet<Shrinkable<Object>> transform(Tuple tuple) {
 		checkCompatibility(tuple);
 
 		List<Shrinkable<Object>> direct = tuple.items()
@@ -36,11 +76,6 @@ public class DataBasedShrinkablesGenerator implements ForAllParametersGenerator 
 				.map(Shrinkable::unshrinkable).collect(Collectors.toList());
 
 		return ParameterSet.direct(direct);
-	}
-
-	@Override
-	public void reset() {
-		this.iterator = this.data.iterator();
 	}
 
 	private void checkCompatibility(Tuple tuple) {
@@ -76,4 +111,14 @@ public class DataBasedShrinkablesGenerator implements ForAllParametersGenerator 
 			JqwikStringSupport.displayString(parameterTypes)
 		);
 	}
+
+	@Override
+	public Shrinkable<Object> peekDynamicParameter(String name, Arbitrary<Object> arbitrary, DynamicInfo info, boolean edgeCase) {
+		throw new JqwikException("Dynamic parameters are not compatible with @FromData");
+	}
+
+    @Override
+    public Shrinkable<Object> registerDynamicParameter(String name, Arbitrary<Object> arbitrary) {
+        throw new JqwikException("Dynamic parameters are not compatible with @FromData");
+    }
 }

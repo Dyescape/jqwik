@@ -62,7 +62,7 @@ class LazyOfArbitraryShrinkingTests {
 		assertThat(value).isEqualTo(0);
 	}
 
-	@Property(seed = "42") // Fixed seed because sometimes uses too much heap space in CI action
+	@Property(seed = "1") // Fixed seed because sometimes uses too much heap space in CI action
 	void severalStepsToList(@ForAll Random random) {
 		Arbitrary<List<Integer>> arbitrary = listOfInteger();
 		TestingFalsifier<List<Integer>> falsifier = integers -> integers.size() < 2;

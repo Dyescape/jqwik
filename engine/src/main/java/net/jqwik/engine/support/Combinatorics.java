@@ -20,15 +20,8 @@ public class Combinatorics {
 		return new CombinedIterator<>(listOfIterables);
 	}
 
-	public static <T> Iterator<ParameterSet<T>> combineParameters(ParameterSet<Iterable<T>> listOfParameters) {
-		if (listOfParameters.isEmpty()) {
-			return emptyParametersSingleton();
-		}
+	public static <T> CombinedParameterIterator<T> combineParameters(ParameterSet<Iterable<T>> listOfParameters) {
 		return new CombinedParameterIterator<>(listOfParameters);
-	}
-
-	private static <T> Iterator<ParameterSet<T>> emptyParametersSingleton() {
-		return asList(ParameterSet.<T>empty()).iterator();
 	}
 
 	@SuppressWarnings("unchecked")

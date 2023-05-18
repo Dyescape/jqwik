@@ -1,3 +1,5 @@
+import net.jqwik.api.dynamic.Dynamic;
+
 module net.jqwik.engine {
 
 	opens net.jqwik.engine.properties.configurators to org.junit.platform.commons;
@@ -19,6 +21,7 @@ module net.jqwik.engine {
 	provides net.jqwik.api.Arbitraries.ArbitrariesFacade with net.jqwik.engine.facades.ArbitrariesFacadeImpl;
 	provides net.jqwik.api.Arbitrary.ArbitraryFacade with net.jqwik.engine.facades.ArbitraryFacadeImpl;
 	provides net.jqwik.api.Combinators.CombinatorsFacade with net.jqwik.engine.facades.CombinatorsFacadeImpl;
+	provides net.jqwik.api.dynamic.Dynamic.DynamicFacade with net.jqwik.engine.facades.DynamicFacadeImpl;
 	provides net.jqwik.api.EdgeCases.EdgeCasesFacade with net.jqwik.engine.facades.EdgeCasesFacadeImpl;
 	provides net.jqwik.api.ExhaustiveGenerator.ExhaustiveGeneratorFacade with net.jqwik.engine.facades.ExhaustiveGeneratorFacadeImpl;
 	provides net.jqwik.api.Functions.FunctionsFacade with net.jqwik.engine.facades.FunctionsFacadeImpl;

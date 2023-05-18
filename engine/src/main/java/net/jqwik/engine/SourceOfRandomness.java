@@ -62,11 +62,7 @@ public class SourceOfRandomness {
 		}
 
 		private XORShiftRandom(long seed) {
-			this.seed = mix64(seed);
-			if (this.seed == 0) {
-				// 0 is invalid for XorShift seed, so we set it to a non-zero value
-				this.seed = 0xbf58476d1ce4e5b9L;
-			}
+			setSeed(seed);
 		}
 
 		/**
@@ -83,6 +79,15 @@ public class SourceOfRandomness {
 			long x = nextLong();
 			x &= ((1L << nbits) - 1);
 			return (int) x;
+		}
+
+		@Override
+		public void setSeed(long seed) {
+			this.seed = mix64(seed);
+			if (this.seed == 0) {
+				// 0 is invalid for XorShift seed, so we set it to a non-zero value
+				this.seed = 0xbf58476d1ce4e5b9L;
+			}
 		}
 
 		/**

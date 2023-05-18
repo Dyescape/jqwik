@@ -15,7 +15,7 @@ class AroundTryHookTests {
 
 	static int count1 = 0;
 
-	@Property(tries = 10)
+	@Property(tries = 10, generation = GenerationMode.RANDOMIZED)
 	@AddLifecycleHook(IncrementCount1.class)
 	@PerProperty(AssertCount1.class)
 	void singleHookIsApplied() {
@@ -30,7 +30,7 @@ class AroundTryHookTests {
 
 	static int count2 = 0;
 
-	@Property(tries = 10)
+	@Property(tries = 10, generation = GenerationMode.RANDOMIZED)
 	@AddLifecycleHook(IncrementCount2.class)
 	@AddLifecycleHook(IncrementCount2.class)
 	@PerProperty(AssertCount2.class)
@@ -46,7 +46,7 @@ class AroundTryHookTests {
 
 	static int count3 = 0;
 
-	@Property(tries = 10)
+	@Property(tries = 10, generation = GenerationMode.RANDOMIZED)
 	@AddLifecycleHook(SwallowFailure.class)
 	@PerProperty(AssertCount3.class)
 	void hookCanSwallowFailures() {
@@ -130,7 +130,7 @@ class AroundTryHookTests {
 		}
 	}
 
-	@Property(tries = 2)
+	@Property(tries = 2, generation = GenerationMode.RANDOMIZED)
 	@AddLifecycleHook(CheckTryLifecycleContext.class)
 	void checkTryLifecycleContextAttributes() {
 		// All checking is done in the hook

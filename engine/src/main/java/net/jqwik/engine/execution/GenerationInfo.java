@@ -15,22 +15,40 @@ public class GenerationInfo implements Serializable {
 
 	private final String randomSeed;
 	private final int generationIndex;
-
+	private final int baseGenerationIndex;
+	private final boolean edgeCase;
+	private final Map<String, DynamicInfo> dynamics;
 	// Store ordinals instead of enum objects so that serialization
 	// in jqwik.database uses less disk space
 	private final List<List<Byte>> byteSequences;
 
-	public GenerationInfo(String randomSeed) {
-		this(randomSeed, 0);
-	}
-
 	public GenerationInfo(String randomSeed, int generationIndex) {
-		this(randomSeed, generationIndex, Collections.emptyList());
+		this(randomSeed, generationIndex, generationIndex, false, Collections.emptyMap());
 	}
 
-	private GenerationInfo(String randomSeed, int generationIndex, List<List<Byte>> byteSequences) {
+	public GenerationInfo(String randomSeed) {
+		this(randomSeed, 0, 0, false, Collections.emptyMap());
+	}
+
+	public GenerationInfo(String randomSeed,
+						  int generationIndex,
+						  int baseGenerationIndex,
+						  boolean edgeCase,
+						  Map<String, DynamicInfo> dynamics) {
+		this(randomSeed, generationIndex, baseGenerationIndex, edgeCase, dynamics, Collections.emptyList());
+	}
+
+	private GenerationInfo(String randomSeed,
+						   int generationIndex,
+						   int baseGenerationIndex,
+						   boolean edgeCase,
+						   Map<String, DynamicInfo> dynamics,
+						   List<List<Byte>> byteSequences) {
 		this.randomSeed = randomSeed != null ? (randomSeed.isEmpty() ? null : randomSeed) : null;
 		this.generationIndex = generationIndex;
+		this.edgeCase = edgeCase;
+		this.baseGenerationIndex = baseGenerationIndex;
+		this.dynamics = dynamics;
 		this.byteSequences = byteSequences;
 	}
 
@@ -44,7 +62,14 @@ public class GenerationInfo implements Serializable {
 		}
 		List<List<Byte>> newByteSequences = new ArrayList<>(byteSequences);
 		newByteSequences.add(toByteSequence(toAppend));
-		return new GenerationInfo(randomSeed, generationIndex, newByteSequences);
+		return new GenerationInfo(
+				randomSeed,
+				generationIndex,
+				baseGenerationIndex,
+				edgeCase,
+				dynamics,
+				newByteSequences
+		);
 	}
 
 	public Optional<String> randomSeed() {
@@ -53,6 +78,18 @@ public class GenerationInfo implements Serializable {
 
 	public int generationIndex() {
 		return generationIndex;
+	}
+
+	public int baseGenerationIndex() {
+		return baseGenerationIndex;
+	}
+
+	public boolean edgeCase() {
+		return edgeCase;
+	}
+
+	public Map<String, DynamicInfo> dynamics() {
+		return dynamics;
 	}
 
 	public Optional<ParameterSet<Shrinkable<Object>>> generateOn(ParametersGenerator generator, TryLifecycleContext context) {
@@ -80,15 +117,9 @@ public class GenerationInfo implements Serializable {
 	}
 
 	private ParameterSet<Shrinkable<Object>> useGenerationIndex(ParametersGenerator generator, TryLifecycleContext context) {
-		ParameterSet<Shrinkable<Object>> sample = null;
-		for (int i = 0; i < generationIndex; i++) {
-			if (generator.hasNext()) {
-				sample = generator.next(context);
-			} else {
-				return null;
-			}
-		}
-		return sample;
+		if (generationIndex == 0) return null;
+
+		return generator.peek(this, context);
 	}
 
 	public List<List<TryExecutionResult.Status>> shrinkingSequences() {
@@ -108,6 +139,9 @@ public class GenerationInfo implements Serializable {
 
 		GenerationInfo that = (GenerationInfo) o;
 		if (generationIndex != that.generationIndex) return false;
+		if (baseGenerationIndex != that.baseGenerationIndex) return false;
+		if (edgeCase != that.edgeCase) return false;
+		if (!Objects.equals(dynamics, that.dynamics)) return false;
 		if (!Objects.equals(randomSeed, that.randomSeed)) return false;
 		return byteSequences.equals(that.byteSequences);
 	}
@@ -116,6 +150,9 @@ public class GenerationInfo implements Serializable {
 	public int hashCode() {
 		int result = randomSeed != null ? randomSeed.hashCode() : 0;
 		result = 31 * result + generationIndex;
+		result = 31 * result + baseGenerationIndex;
+		result = 31 * result + Boolean.hashCode(edgeCase);
+		result = 31 * result + dynamics.hashCode();
 		return result;
 	}
 

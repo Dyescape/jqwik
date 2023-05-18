@@ -171,7 +171,7 @@ class PropertyMethodResolverTests {
 			testRunData.add(new TestRun(
 				previouslyFailedId,
 				Status.FAILED,
-				new GenerationInfo("4243", 13)
+				new GenerationInfo("4243", 13, 13, false, Collections.emptyMap())
 			));
 			Set<TestDescriptor> descriptors = resolver.resolveElement(method, classDescriptor);
 

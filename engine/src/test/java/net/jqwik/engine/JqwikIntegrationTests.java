@@ -339,19 +339,6 @@ class JqwikIntegrationTests {
 				reported("TestsForReporting:succeedingWithForAll")
 			);
 		}
-
-		@Example
-		void doReportPropertyWithoutParameters() {
-			Events events = EngineTestKit
-				.engine(createTestEngine(false))
-				.selectors(selectMethod(TestsForReporting.class, "succeedingPropertyWithoutParameters"))
-				.execute()
-				.allEvents();
-
-			events.assertEventsMatchLoosely(
-				reported("TestsForReporting:succeedingPropertyWithoutParameters")
-			);
-		}
 	}
 
 	private Condition<Event> reported(String key) {

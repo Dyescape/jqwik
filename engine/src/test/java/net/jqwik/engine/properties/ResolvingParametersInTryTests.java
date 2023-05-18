@@ -27,7 +27,7 @@ class ResolvingParametersInTryTests {
 		assertThat(aString).isEqualTo("aString");
 	}
 
-	@Property(tries = 10)
+	@Property(tries = 10, generation = GenerationMode.RANDOMIZED)
 	@AddLifecycleHook(CreateAString.class)
 	@AddLifecycleHook(Create42.class)
 	@PerProperty(Assert20Supplier2InjectorCalls.class)

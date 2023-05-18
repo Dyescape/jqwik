@@ -310,7 +310,7 @@ class PropertyShrinkerTests {
 			PropertyShrinker shrinker = createShrinker(toFalsifiedSample(shrinkables, null), ShrinkingMode.FULL);
 
 			TestingFalsifier<ParameterSet<Object>> falsifier = params -> {
-				params.getDirect().add(42);
+				params.add(42);
 				if (((int) params.get(0)) == 0) return true;
 				return ((int) params.get(1)) <= 1;
 			};

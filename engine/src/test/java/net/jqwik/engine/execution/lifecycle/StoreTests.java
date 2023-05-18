@@ -24,7 +24,7 @@ class StoreTests {
 			.isInstanceOf(JqwikException.class);
 	}
 
-	@Property(tries = 10)
+	@Property(tries = 10, generation = GenerationMode.RANDOMIZED)
 	@PerProperty(AssertCounter110.class)
 	void getOrCreateAStore() {
 		Store<Integer> counter = Store.getOrCreate("counter", Lifespan.PROPERTY, () -> 100);
@@ -148,12 +148,12 @@ class StoreTests {
 	class LifespanProperty implements AutoCloseable {
 		Store<Integer> lifespanProperty = Store.getOrCreate("run", Lifespan.PROPERTY, () -> 0);
 
-		@Property(tries = 10)
+		@Property(tries = 10, generation = GenerationMode.RANDOMIZED)
 		void run1() {
 			lifespanProperty.update(i -> i + 1);
 		}
 
-		@Property(tries = 10)
+		@Property(tries = 10, generation = GenerationMode.RANDOMIZED)
 		void run2() {
 			lifespanProperty.update(i -> i + 1);
 		}

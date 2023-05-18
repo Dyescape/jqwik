@@ -4,8 +4,11 @@ import java.util.*;
 import java.util.stream.*;
 
 import net.jqwik.api.*;
+import net.jqwik.api.constraints.*;
+import net.jqwik.api.parameters.*;
 import net.jqwik.engine.*;
 import net.jqwik.engine.descriptor.*;
+import net.jqwik.engine.execution.*;
 import net.jqwik.engine.support.*;
 
 import static org.assertj.core.api.Assertions.*;
@@ -47,16 +50,38 @@ class DataBasedShrinkablesGeneratorTests {
 	}
 
 	@Example
-	void resetting() {
+	void peeking() {
 		Iterable<Tuple.Tuple2<String, Integer>> data = Table.of(Tuple.of("a", 1), Tuple.of("b", 2));
 		DataBasedShrinkablesGenerator shrinkablesGenerator = generator("stringAndInt", data);
 
-		shrinkablesGenerator.next();
-		shrinkablesGenerator.next();
+		List<List<Object>> values = new ArrayList<>();
+		List<GenerationInfo> generationInfos = new ArrayList<>();
 
-		shrinkablesGenerator.reset();
-		assertThat(shrinkablesGenerator.hasNext()).isTrue();
-		assertThat(values(shrinkablesGenerator.next().getDirect())).containsExactly("a", 1);
+		for (int i = 0; i < 2; i++) {
+			values.add(shrinkablesGenerator.next().map(Shrinkable::value).getDirect());
+			generationInfos.add(generationInfo(i, shrinkablesGenerator));
+		}
+
+		for (int i = 0; i < 2; i++) {
+			GenerationInfo info = generationInfos.get(i);
+			List<Object> value = values.get(i);
+			ParameterSet<Shrinkable<Object>> peek = shrinkablesGenerator.peek(info);
+
+			assertThat(peek.map(Shrinkable::value).getDirect()).isEqualTo(value);
+		}
+	}
+
+	private GenerationInfo generationInfo(
+		int index,
+		DataBasedShrinkablesGenerator generator
+	) {
+		return new GenerationInfo(
+			"",
+			index,
+			generator.baseGenerationIndex(),
+			generator.edgeCase(),
+			Collections.emptyMap()
+		);
 	}
 
 	@Example

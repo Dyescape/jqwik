@@ -529,6 +529,17 @@ class GenericPropertyTests {
 			}
 
 			@Override
+			public ParameterSet<Shrinkable<Object>> peek(GenerationInfo info, TryLifecycleContext context) {
+				List<Shrinkable<Object>> direct = generators
+						.stream()
+						.map(generator -> generator.next(random))
+						.peek(ignore -> info.generationIndex())
+						.collect(Collectors.toList());
+
+				return ParameterSet.direct(direct);
+			}
+
+			@Override
 			public int edgeCasesTotal() {
 				return 0;
 			}
@@ -540,12 +551,12 @@ class GenericPropertyTests {
 
 			@Override
 			public GenerationInfo generationInfo(String randomSeed) {
-				return new GenerationInfo(randomSeed, index);
+				return new GenerationInfo(randomSeed, index, index, false, Collections.emptyMap());
 			}
 
 			@Override
-			public void reset() {
-				index = 0;
+			public <V> V registerDynamicParameter(String name, Arbitrary<V> arbitrary) {
+				throw new UnsupportedOperationException("Cannot add dynamic parameters");
 			}
 		};
 	}
@@ -563,6 +574,11 @@ class GenericPropertyTests {
 			}
 
 			@Override
+			public ParameterSet<Shrinkable<Object>> peek(GenerationInfo info, TryLifecycleContext context) {
+				return ParameterSet.empty();
+			}
+
+			@Override
 			public int edgeCasesTotal() {
 				return 0;
 			}
@@ -574,11 +590,12 @@ class GenericPropertyTests {
 
 			@Override
 			public GenerationInfo generationInfo(String randomSeed) {
-				return new GenerationInfo(randomSeed, 0);
+				return new GenerationInfo(randomSeed, 0, 0, false, Collections.emptyMap());
 			}
 
 			@Override
-			public void reset() {
+			public <V> V registerDynamicParameter(String name, Arbitrary<V> arbitrary) {
+				throw new UnsupportedOperationException("Cannot add dynamic parameters");
 			}
 		};
 	}
@@ -602,6 +619,19 @@ class GenericPropertyTests {
 			}
 
 			@Override
+			public ParameterSet<Shrinkable<Object>> peek(GenerationInfo info, TryLifecycleContext context) {
+				Iterator<Integer> valuesIterator = Arrays.stream(values).iterator();
+
+				for (int i = 0; i < info.generationIndex(); i++) {
+					valuesIterator.next();
+				}
+
+				Shrinkable<Object> shrinkable = Shrinkable.unshrinkable(valuesIterator.next());
+
+				return ParameterSet.direct(Collections.singletonList(shrinkable));
+			}
+
+			@Override
 			public int edgeCasesTotal() {
 				return 0;
 			}
@@ -613,12 +643,12 @@ class GenericPropertyTests {
 
 			@Override
 			public GenerationInfo generationInfo(String randomSeed) {
-				return new GenerationInfo(randomSeed, index);
+				return new GenerationInfo(randomSeed, index, index, false, Collections.emptyMap());
 			}
 
 			@Override
-			public void reset() {
-				index = 0;
+			public <V> V registerDynamicParameter(String name, Arbitrary<V> arbitrary) {
+				throw new UnsupportedOperationException("Cannot add dynamic parameters");
 			}
 		};
 	}

@@ -4,10 +4,12 @@ import java.lang.reflect.*;
 import java.util.*;
 
 import net.jqwik.api.*;
+import net.jqwik.api.constraints.*;
 import net.jqwik.api.domains.*;
 import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.*;
 import net.jqwik.engine.descriptor.*;
+import net.jqwik.engine.execution.*;
 import net.jqwik.engine.support.*;
 
 import static java.util.Arrays.*;
@@ -24,18 +26,38 @@ class RandomizedShrinkablesGeneratorTests {
 		assertThat(shrinkables.get(1).value()).isInstanceOf(Integer.class);
 	}
 
-	@Example
-	void resetting(@ForAll Random random) {
+	@Property(tries = 10)
+	void peeking(@ForAll Random random, @ForAll @IntRange(max = 256) int size) {
 		RandomizedShrinkablesGenerator shrinkablesGenerator = createGenerator(random, "simpleParameters");
 
-		List<Object> values1 = shrinkablesGenerator.next().map(Shrinkable::value).getDirect();
-		List<Object> values2 = shrinkablesGenerator.next().map(Shrinkable::value).getDirect();
-		List<Object> values3 = shrinkablesGenerator.next().map(Shrinkable::value).getDirect();
+		List<List<Object>> values = new ArrayList<>();
+		List<GenerationInfo> generationInfos = new ArrayList<>();
 
-		shrinkablesGenerator.reset();
-		assertThat(shrinkablesGenerator.next().map(Shrinkable::value).getDirect()).isEqualTo(values1);
-		assertThat(shrinkablesGenerator.next().map(Shrinkable::value).getDirect()).isEqualTo(values2);
-		assertThat(shrinkablesGenerator.next().map(Shrinkable::value).getDirect()).isEqualTo(values3);
+		for (int i = 0; i < size; i++) {
+			values.add(shrinkablesGenerator.next().map(Shrinkable::value).getDirect());
+			generationInfos.add(generationInfo(i, shrinkablesGenerator));
+		}
+
+		for (int i = 0; i < size; i++) {
+			GenerationInfo info = generationInfos.get(i);
+			List<Object> value = values.get(i);
+			ParameterSet<Shrinkable<Object>> peek = shrinkablesGenerator.peek(info);
+
+			assertThat(peek.map(Shrinkable::value).getDirect()).isEqualTo(value);
+		}
+	}
+
+	private GenerationInfo generationInfo(
+		int index,
+		RandomizedShrinkablesGenerator generator
+	) {
+		return new GenerationInfo(
+			"",
+			index,
+			generator.baseGenerationIndex(),
+			generator.edgeCase(),
+			Collections.emptyMap()
+		);
 	}
 
 	@Example

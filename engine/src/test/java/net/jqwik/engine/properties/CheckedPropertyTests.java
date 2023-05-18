@@ -3,6 +3,7 @@ package net.jqwik.engine.properties;
 import java.util.*;
 import java.util.function.*;
 
+import net.jqwik.api.dynamic.Dynamic;
 import net.jqwik.api.parameters.ParameterSet;
 import org.assertj.core.api.*;
 import org.junit.platform.engine.reporting.*;
@@ -266,7 +267,7 @@ class CheckedPropertyTests {
 			Arbitrary<Integer> integers = Arbitraries.integers().between(1, 99);
 			GenerationInfo previousGenerationInfo = new GenerationInfo("41", 13);
 			// This is what's being generated from integers in the 13th attempt
-			ParameterSet<Integer> expectedParameterValues = ParameterSet.direct(Arrays.asList(65, 77));
+			ParameterSet<Integer> expectedParameterValues = ParameterSet.direct(Arrays.asList(1, 80));
 
 			CheckedFunction checkSample = params -> {
 				Assertions.assertThat(params)
@@ -391,6 +392,27 @@ class CheckedPropertyTests {
 				);
 
 				assertThatThrownBy(() -> checkedProperty.check(new Reporting[0])).isInstanceOf(JqwikException.class);
+			}
+
+			@Example
+			@Label("fails for dynamic parameter")
+			void failForDynamicParameter() {
+				CheckedProperty checkedProperty = createCheckedProperty(
+						"dataDrivenPropertyWithDynamic",
+						params -> {
+							Dynamic.parameter("dynamic", String.class);
+							return true;
+						},
+						getParametersForMethod("dataDrivenPropertyWithDynamic"),
+						p -> Collections.emptySet(),
+						Optional.of(Table.of(Tuple.of(1, "1"), Tuple.of(3, "Fizz"), Tuple.of(5, "Buzz"))),
+						aConfig().withGeneration(DATA_DRIVEN).build(),
+						lifecycleContextForMethod("dataDrivenPropertyWithDynamic", int.class, String.class)
+				);
+
+				PropertyCheckResult result = checkedProperty.check(new Reporting[0]);
+				assertThat(result.checkStatus()).isEqualTo(PropertyCheckResult.CheckStatus.FAILED);
+                assertThat(result.throwable()).get().isInstanceOf(JqwikException.class);
 			}
 		}
 
@@ -602,6 +624,12 @@ class CheckedPropertyTests {
 		@Property
 		@FromData("fizzBuzzSamples")
 		public boolean dataDrivenProperty(@ForAll int index, @ForAll String fizzBuzz) {
+			return true;
+		}
+
+		@Property
+		@FromData("fizzBuzzSamples")
+		public boolean dataDrivenPropertyWithDynamic(@ForAll int index, @ForAll String fizzBuzz) {
 			return true;
 		}
 

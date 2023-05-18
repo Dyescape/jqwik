@@ -2,6 +2,7 @@ package net.jqwik.engine.properties;
 
 import java.util.function.*;
 
+import net.jqwik.api.JqwikException;
 import net.jqwik.api.parameters.ParameterSet;
 import org.opentest4j.*;
 
@@ -16,6 +17,8 @@ public interface CheckedFunction extends Predicate<ParameterSet<Object>>, TryExe
 		try {
 			boolean result = this.test(parameters);
 			return result ? TryExecutionResult.satisfied() : TryExecutionResult.falsified(null);
+		} catch (JqwikException e){
+			throw e;
 		} catch (TestAbortedException tea) {
 			return TryExecutionResult.invalid(tea);
 		} catch (AssertionError | Exception e) {

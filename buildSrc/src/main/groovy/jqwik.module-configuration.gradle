@@ -7,3 +7,7 @@ moduleConfig {
 	version = "${jqwikVersion}"
 	neverCompileModuleInfo = true
 }
+
+if (project.property('addModulesToClasspath') == "true") {
+	sourceSets.main.java.srcDirs += [ "src/main/module" ]
+}

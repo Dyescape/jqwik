@@ -135,7 +135,7 @@ public class CheckedProperty {
 		} else if (effectiveConfiguration.getGenerationMode() == GenerationMode.EXHAUSTIVE) {
 			ensureValidExhaustiveMode();
 			effectiveConfiguration = effectiveConfiguration.withTries(
-				Math.toIntExact(getOptionalExhaustive().get().maxCount())
+				Math.toIntExact(getOptionalExhaustive().get().requiredTries())
 			);
 		} else if (effectiveConfiguration.getGenerationMode() == GenerationMode.AUTO) {
 			effectiveConfiguration = chooseGenerationMode(effectiveConfiguration);
@@ -151,7 +151,6 @@ public class CheckedProperty {
 
 		boolean useAfterFailureGenerator =
 			effectiveConfiguration.previousFailureMustBeHandled()
-				&& !forAllParameters.isEmpty()
 				&& effectiveConfiguration.seedHasNotChanged();
 
 		if (useAfterFailureGenerator) {
@@ -201,7 +200,7 @@ public class CheckedProperty {
 	private PropertyConfiguration chooseGenerationMode(PropertyConfiguration configuration) {
 		if (optionalData.isPresent()) {
 			configuration = configuration.withGenerationMode(GenerationMode.DATA_DRIVEN);
-		} else if (getOptionalExhaustive().isPresent() && getOptionalExhaustive().get().maxCount() <= configuration.getTries()) {
+		} else if (getOptionalExhaustive().isPresent() && getOptionalExhaustive().get().requiredTries() <= configuration.getTries()) {
 			configuration = configuration.withGenerationMode(GenerationMode.EXHAUSTIVE);
 		} else {
 			configuration = configuration.withGenerationMode(GenerationMode.RANDOMIZED);
@@ -210,9 +209,6 @@ public class CheckedProperty {
 	}
 
 	private Optional<ExhaustiveShrinkablesGenerator> createOptionalExhaustiveShrinkablesGenerator(long maxNumberOfSamples) {
-		if (forAllParameters.isEmpty()) {
-			return Optional.empty();
-		}
 		try {
 			ExhaustiveShrinkablesGenerator exhaustiveShrinkablesGenerator =
 				ExhaustiveShrinkablesGenerator.forParameters(forAllParameters, arbitraryResolver, maxNumberOfSamples);

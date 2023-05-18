@@ -3,6 +3,8 @@ package net.jqwik.engine.properties;
 import java.util.*;
 
 import net.jqwik.api.parameters.ParameterSet;
+import net.jqwik.engine.execution.*;
+
 import org.assertj.core.api.*;
 
 import net.jqwik.api.*;
@@ -20,7 +22,7 @@ class ExhaustiveShrinkablesGeneratorTests {
 	@Example
 	void singleIntParameter() {
 		ExhaustiveShrinkablesGenerator shrinkablesGenerator = createGenerator("intFrom0to5");
-		assertThat(shrinkablesGenerator.maxCount()).isEqualTo(6);
+		assertThat(shrinkablesGenerator.requiredTries()).isEqualTo(6);
 
 		assertThat(shrinkablesGenerator.hasNext()).isTrue();
 		assertThat(shrinkablesGenerator.next().getDirect()).containsExactly(Shrinkable.unshrinkable(0));
@@ -34,26 +36,45 @@ class ExhaustiveShrinkablesGeneratorTests {
 	}
 
 	@Example
-	void resetting() {
+	void peeking() {
 		ExhaustiveShrinkablesGenerator shrinkablesGenerator = createGenerator("intFrom0to5");
 
-		shrinkablesGenerator.next();
-		shrinkablesGenerator.next();
-		shrinkablesGenerator.next();
+		List<List<Object>> values = new ArrayList<>();
+		List<GenerationInfo> generationInfos = new ArrayList<>();
 
-		shrinkablesGenerator.reset();
-		assertThat(shrinkablesGenerator.hasNext()).isTrue();
-		assertThat(shrinkablesGenerator.next().getDirect()).containsExactly(Shrinkable.unshrinkable(0));
-		assertThat(shrinkablesGenerator.next().getDirect()).containsExactly(Shrinkable.unshrinkable(1));
-		assertThat(shrinkablesGenerator.next().getDirect()).containsExactly(Shrinkable.unshrinkable(2));
-		assertThat(shrinkablesGenerator.next().getDirect()).containsExactly(Shrinkable.unshrinkable(3));
+		int index = 0;
+		while (shrinkablesGenerator.hasNext()) {
+			values.add(shrinkablesGenerator.next().map(Shrinkable::value).getDirect());
+			generationInfos.add(generationInfo(index++, shrinkablesGenerator));
+		}
+
+		for (int i = 0; i < index; i++) {
+			GenerationInfo info = generationInfos.get(i);
+			List<Object> value = values.get(i);
+			ParameterSet<Shrinkable<Object>> peek = shrinkablesGenerator.peek(info);
+
+			assertThat(peek.map(Shrinkable::value).getDirect()).isEqualTo(value);
+		}
+	}
+
+	private GenerationInfo generationInfo(
+		int index,
+		ExhaustiveShrinkablesGenerator generator
+	) {
+		return new GenerationInfo(
+			"",
+			index,
+			generator.baseGenerationIndex(),
+			generator.edgeCase(),
+			Collections.emptyMap()
+		);
 	}
 
 	@Example
 	@Label("ambiguous Arbitrary resolution generates sum of arbitraries")
 	void ambiguousArbitraryResolution() {
 		ExhaustiveShrinkablesGenerator shrinkablesGenerator = createGenerator("iterables");
-		assertThat(shrinkablesGenerator.maxCount()).isEqualTo(5);
+		assertThat(shrinkablesGenerator.requiredTries()).isEqualTo(5);
 
 		assertThat(shrinkablesGenerator).toIterable().containsOnly(
 			ParameterSet.direct(asList(Shrinkable.unshrinkable(asList(0, 0)))),
@@ -67,7 +88,7 @@ class ExhaustiveShrinkablesGeneratorTests {
 	@Example
 	void twoIntParameters() {
 		ExhaustiveShrinkablesGenerator shrinkablesGenerator = createGenerator("intFrom1to3And4to5");
-		assertThat(shrinkablesGenerator.maxCount()).isEqualTo(6);
+		assertThat(shrinkablesGenerator.requiredTries()).isEqualTo(6);
 
 		assertThat(shrinkablesGenerator.next().getDirect()).containsExactly(Shrinkable.unshrinkable(1), Shrinkable.unshrinkable(4));
 		assertThat(shrinkablesGenerator.next().getDirect()).containsExactly(Shrinkable.unshrinkable(1), Shrinkable.unshrinkable(5));

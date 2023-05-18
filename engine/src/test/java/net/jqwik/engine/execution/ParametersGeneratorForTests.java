@@ -9,8 +9,7 @@ import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.properties.*;
 import net.jqwik.engine.properties.shrinking.*;
 
-class ParametersGeneratorForTests implements ParametersGenerator {
-
+public class ParametersGeneratorForTests implements ParametersGenerator {
 	int index = 0;
 
 	@Override
@@ -21,6 +20,13 @@ class ParametersGeneratorForTests implements ParametersGenerator {
 	@Override
 	public ParameterSet<Shrinkable<Object>> next(TryLifecycleContext context) {
 		return ParameterSet.direct(Arrays.asList(shrinkableInt(++index)));
+	}
+
+	@Override
+	public ParameterSet<Shrinkable<Object>> peek(GenerationInfo info, TryLifecycleContext context) {
+		if (info.generationIndex() >= 200) return null;
+
+		return ParameterSet.direct(Arrays.asList(shrinkableInt(info.generationIndex())));
 	}
 
 	private Shrinkable<Object> shrinkableInt(int anInt) {
@@ -43,12 +49,11 @@ class ParametersGeneratorForTests implements ParametersGenerator {
 
 	@Override
 	public GenerationInfo generationInfo(String randomSeed) {
-		return new GenerationInfo(randomSeed, index);
+		return new GenerationInfo(randomSeed, index, index, false, Collections.emptyMap());
 	}
 
 	@Override
-	public void reset() {
-		index = 0;
+	public <V> V registerDynamicParameter(String name, Arbitrary<V> arbitrary) {
+		throw new UnsupportedOperationException("Cannot add dynamic parameters");
 	}
-
 }

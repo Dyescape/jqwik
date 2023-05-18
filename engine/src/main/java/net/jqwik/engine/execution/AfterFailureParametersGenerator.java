@@ -71,9 +71,8 @@ public class AfterFailureParametersGenerator implements ParametersGenerator {
 		if (runWithPreviousSample) {
 			Optional<ParameterSet<Shrinkable<Object>>> previousSample = generatePreviousSample(context);
 			runWithPreviousSample = false;
-			parametersGenerator.reset();
 			if (previousSample.isPresent()) {
-				previousSampleHasJustRun = true;
+				this.previousSampleHasJustRun = true;
 				return previousSample.get();
 			} else {
 				logFailingOfPreviousSampleGeneration();
@@ -82,10 +81,15 @@ public class AfterFailureParametersGenerator implements ParametersGenerator {
 			}
 		}
 		if (continueWithSeed) {
-			previousSampleHasJustRun = false;
+			this.previousSampleHasJustRun = false;
 			return parametersGenerator.next(context);
 		}
 		return null;
+	}
+
+	@Override
+	public ParameterSet<Shrinkable<Object>> peek(GenerationInfo info, TryLifecycleContext context) {
+		throw new UnsupportedOperationException("Should only be used on delegate generators");
 	}
 
 	private void logFailingOfPreviousSampleGeneration() {
@@ -111,6 +115,11 @@ public class AfterFailureParametersGenerator implements ParametersGenerator {
 	}
 
 	@Override
+	public long requiredTries() {
+		return 1 + parametersGenerator.requiredTries();
+	}
+
+	@Override
 	public GenerationInfo generationInfo(String randomSeed) {
 		if (previousSampleHasJustRun) {
 			return previousFailureGeneration;
@@ -119,7 +128,7 @@ public class AfterFailureParametersGenerator implements ParametersGenerator {
 	}
 
 	@Override
-	public void reset() {
-		throw new UnsupportedOperationException("Should only be used on delegate generators");
+	public <V> V registerDynamicParameter(String name, Arbitrary<V> arbitrary) {
+		return parametersGenerator.registerDynamicParameter(name, arbitrary);
 	}
 }

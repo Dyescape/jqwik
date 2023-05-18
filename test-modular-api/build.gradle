@@ -27,7 +27,7 @@ test {
 }
 
 dependencies {
-	if (isRunningInCI()) {
+	if (isRunningInCI() || property('addModulesToClasspath') == "true") {
 		testImplementation(project(":api"))
 		testImplementation(project(":web"))
 		testRuntimeOnly(project(":engine"))

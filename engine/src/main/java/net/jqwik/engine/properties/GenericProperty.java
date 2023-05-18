@@ -9,6 +9,8 @@ import net.jqwik.api.Tuple.*;
 import net.jqwik.api.lifecycle.*;
 import net.jqwik.api.parameters.ParameterSet;
 import net.jqwik.engine.descriptor.*;
+import net.jqwik.engine.dynamic.CurrentDynamicContext;
+import net.jqwik.engine.dynamic.PropertyCheckDynamicContext;
 import net.jqwik.engine.execution.*;
 import net.jqwik.engine.execution.lifecycle.*;
 import net.jqwik.engine.execution.reporting.*;
@@ -22,6 +24,7 @@ public class GenericProperty {
 	private final ParametersGenerator parametersGenerator;
 	private final TryLifecycleExecutor tryLifecycleExecutor;
 	private final Supplier<TryLifecycleContext> tryLifecycleContextSupplier;
+	private final PropertyCheckDynamicContext dynamicContext;
 
 	public GenericProperty(
 		String name,
@@ -35,6 +38,7 @@ public class GenericProperty {
 		this.parametersGenerator = parametersGenerator;
 		this.tryLifecycleExecutor = tryLifecycleExecutor;
 		this.tryLifecycleContextSupplier = tryLifecycleContextSupplier;
+		this.dynamicContext = new PropertyCheckDynamicContext(parametersGenerator);
 	}
 
 	public PropertyCheckResult check(Reporter reporter, Reporting[] reporting) {
@@ -66,6 +70,9 @@ public class GenericProperty {
 			try {
 				countChecks++;
 				TryExecutionResult tryExecutionResult = testPredicate(tryLifecycleContext, sample, reporter, reporting);
+
+				maxTries = Math.max(maxTries, Math.toIntExact(parametersGenerator.requiredTries()));
+
 				switch (tryExecutionResult.status()) {
 					case SATISFIED:
 						finishEarly = tryExecutionResult.shouldPropertyFinishEarly();
@@ -159,11 +166,19 @@ public class GenericProperty {
 		Reporter reporter,
 		Reporting[] reporting
 	) {
-		if (Reporting.GENERATED.containedIn(reporting)) {
-			Map<String, Object> reports = SampleReporter.createSampleReports(tryLifecycleContext.targetMethod(), sample);
-			reporter.publishReports("generated", reports);
+		dynamicContext.startTry(sample);
+
+		try {
+			return CurrentDynamicContext.runWithContext(
+					dynamicContext,
+					() -> tryLifecycleExecutor.execute(tryLifecycleContext, sample)
+			);
+		} finally {
+			if (Reporting.GENERATED.containedIn(reporting)) {
+				Map<String, Object> reports = SampleReporter.createSampleReports(tryLifecycleContext.targetMethod(), sample);
+				reporter.publishReports("generated", reports);
+			}
 		}
-		return tryLifecycleExecutor.execute(tryLifecycleContext, sample);
 	}
 
 	private boolean maxDiscardRatioExceeded(int countChecks, int countTries, int maxDiscardRatio) {
