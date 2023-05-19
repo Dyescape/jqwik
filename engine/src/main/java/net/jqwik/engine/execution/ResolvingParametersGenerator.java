@@ -55,7 +55,8 @@ public class ResolvingParametersGenerator implements ParametersGenerator {
 			}
 		}
 
-		ParameterSet<Shrinkable<Object>> generated =  forAllParametersGenerator.peek(info);
+		ParameterSet<Shrinkable<Object>> generated = forAllParametersGenerator.peek(info);
+		if (generated == null) return null;
 
 		return injectParameters(generated, context);
 	}
